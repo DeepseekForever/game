@@ -1,0 +1,18 @@
+game/
+├── index.html
+├── style.css
+├── game.js
+└── assets/
+    ├── images/
+    │   ├── dipsik.png
+    │   ├── red_dipsik.png
+    │   ├── gift.png
+    │   ├── bug.png
+    │   └── snowflake.png
+    └── sounds/
+        ├── jump.mp3
+        ├── collect.mp3
+        ├── hurt.mp3
+        ├── victory.mp3
+        ├── bg_music.mp3
+        └── dfng.mp3 (музыка снегопада)

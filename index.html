@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 ДИПСИК: НОВОГОДНИЙ КВЕСТ КОДА! 🎅</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <style>
+        /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ */
+        .secret-code {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #FFD700;
+            font-family: monospace;
+            z-index: 1000;
+            border: 1px solid #FF8C00;
+        }
+        
+        .easter-egg {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #FFD700;
+            z-index: 10000;
+            color: white;
+            text-align: center;
+            max-width: 90%;
+        }
+        
+        /* ТЕЛЕФОННОЕ УПРАВЛЕНИЕ */
+        .game-controls {
+            display: none !important;
+            opacity: 1 !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* АНИМАЦИЯ ПОДАРКОВ */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* БОЛЬШОЕ ИГРОВОЕ ПОЛЕ */
+        #gameCanvas {
+            width: 100% !important;
+            max-width: 1200px !important;
+            height: 70vh !important;
+            max-height: 800px !important;
+        }
+        
+        /* КНОПКИ ПОДЕЛИТЬСЯ */
+        .telegram-share-btn {
+            background: linear-gradient(45deg, #0088cc, #34AADF) !important;
+            color: white !important;
+            border: none !important;
+        }
+        
+        .whatsapp-share-btn {
+            background: linear-gradient(45deg, #25D366, #128C7E) !important;
+            color: white !important;
+            border: none !important;
+        }
+        
+        .share-btn:hover {
+            transform: translateY(-3px) !important;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .control-btn {
+                width: 70px !important;
+                height: 70px !important;
+                font-size: 1.5rem !important;
+            }
+            
+            .action-btn, .special-btn {
+                padding: 12px 20px !important;
+                font-size: 1rem !important;
+            }
+            
+            .menu-btn {
+                padding: 15px 20px !important;
+                font-size: 1.1rem !important;
+            }
+            
+            #gameCanvas {
+                height: 60vh !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .control-btn {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 1.3rem !important;
+            }
+            
+            .menu-buttons {
+                gap: 10px !important;
+            }
+            
+            .menu-btn {
+                width: 100% !important;
+            }
+            
+            #gameCanvas {
+                height: 55vh !important;
+            }
+        }
+        
+        /* ЁЛОЧНЫЕ ШАРЫ */
+        .christmas-ball {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        /* ГИРЛЯНДА */
+        .garland {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: repeating-linear-gradient(
+                90deg,
+                #228B22 0px, #228B22 20px,
+                #B22222 20px, #B22222 40px,
+                #FF8C00 40px, #FF8C00 60px,
+                #FFD700 60px, #FFD700 80px,
+                #1E90FF 80px, #1E90FF 100px
+            );
+            z-index: 999;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        /* ИНДИКАТОР СЛОЖНОСТИ */
+        .difficulty-indicator {
+            position: fixed;
+            top: 50px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #FFD700;
+            font-family: monospace;
+            z-index: 1000;
+            border: 1px solid #FF8C00;
+        }
+    </style>
+</head>
+<body>
+    <!-- ГИРЛЯНДА -->
+    <div class="garland"></div>
+    
+    <!-- ЁЛОЧНЫЕ ШАРЫ -->
+    <div class="christmas-ball" style="top: 10%; left: 5%; background: #B22222;"></div>
+    <div class="christmas-ball" style="top: 15%; right: 8%; background: #FFD700;"></div>
+    <div class="christmas-ball" style="top: 70%; left: 3%; background: #228B22;"></div>
+    <div class="christmas-ball" style="top: 85%; right: 5%; background: #FF8C00;"></div>
+    <div class="christmas-ball" style="top: 50%; left: 10%; background: #1E90FF;"></div>
+    
+    <!-- СЕКРЕТНЫЙ ПАСХАЛЬНЫЙ КОД -->
+    <div class="secret-code" id="secretCode">
+        <span id="codeDisplay">🎄 CODE: 0000</span>
+    </div>
+    
+    <!-- ИНДИКАТОР СЛОЖНОСТИ -->
+    <div class="difficulty-indicator" id="difficultyIndicator">
+        Сложность: <span id="difficultyLevel">НОВИЧОК</span>
+    </div>
+    
+    <!-- УВЕДОМЛЕНИЯ -->
+    <div class="collect-notification" id="collectNotification">🎁 +100 очков!</div>
+    <div class="hurt-notification" id="hurtNotification">💔 -1 жизнь!</div>
+    
+    <!-- ЭКРАН МЕНЮ -->
+    <div id="menuScreen" class="screen active">
+        <div class="menu-container">
+            <!-- АНИМИРОВАННОЕ ЛИЦО ДИПСИКА -->
+            <div class="dipsik-logo">
+                <div class="dipsik-3d">
+                    <div class="cube">
+                        <div class="face front">🎄</div>
+                        <div class="face back">🎁</div>
+                        <div class="face right">❄️</div>
+                        <div class="face left">⭐</div>
+                        <div class="face top">🎮</div>
+                        <div class="face bottom">👾</div>
+                    </div>
+                </div>
+                <h1 class="title-glitch">DIPSIK<span class="blink">🎄</span></h1>
+                <h2 class="subtitle">НОВОГОДНИЙ КВЕСТ КОДА</h2>
+                <div style="font-size: 3rem; margin-top: 10px;">🎅</div>
+            </div>
+            
+            <!-- СТАТИСТИКА -->
+            <div class="menu-stats">
+                <div class="stat-box">
+                    <i class="fas fa-trophy"></i>
+                    <div class="stat-value" id="bestScore">0</div>
+                    <div class="stat-label">РЕКОРД</div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-gamepad"></i>
+                    <div class="stat-value" id="totalGames">0</div>
+                    <div class="stat-label">ИГРЫ</div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-code"></i>
+                    <div class="stat-value" id="linesCollected">0</div>
+                    <div class="stat-label">СТРОКИ КОДА</div>
+                </div>
+            </div>
+            
+            <!-- КНОПКИ МЕНЮ -->
+            <div class="menu-buttons">
+                <button id="startGameBtn" class="menu-btn pulse">
+                    <i class="fas fa-play"></i> ИГРАТЬ
+                </button>
+                <button id="howToPlayBtn" class="menu-btn">
+                    <i class="fas fa-question-circle"></i> КАК ИГРАТЬ
+                </button>
+                <button id="settingsBtn" class="menu-btn">
+                    <i class="fas fa-cog"></i> НАСТРОЙКИ
+                </button>
+                <button id="creditsBtn" class="menu-btn">
+                    <i class="fas fa-star"></i> АВТОРЫ
+                </button>
+            </div>
+            
+            <!-- ПРОГРЕСС БАР -->
+            <div class="progress-section">
+                <div class="progress-label">ПРОГРЕСС СЕЗОНА: <span id="progressPercent">0%</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="seasonMessage">Начинаем новогоднее кодирование! 🎄</div>
+            </div>
+            
+            <!-- ЧИТ-КОДЫ -->
+            <div class="cheat-codes">
+                <input type="text" id="cheatInput" placeholder="🎅 Введи чит-код..." maxlength="15">
+                <button id="cheatBtn"><i class="fas fa-magic"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ЭКРАН ВЫБОРА РЕЖИМА -->
+    <div id="modeScreen" class="screen">
+        <div class="mode-container">
+            <h2><i class="fas fa-chess-board"></i> ВЫБЕРИ РЕЖИМ</h2>
+            
+            <div class="mode-cards">
+                <div class="mode-card" data-mode="classic">
+                    <div class="mode-icon">🎮</div>
+                    <h3>КЛАССИКА</h3>
+                    <p>Собери все подарки, избегая багов</p>
+                    <div class="mode-difficulty">🟢 ЛЕГКО</div>
+                </div>
+                
+                <div class="mode-card" data-mode="time">
+                    <div class="mode-icon">⏱️</div>
+                    <h3>НА ВРЕМЯ</h3>
+                    <p>Собери максимально за 60 секунд!</p>
+                    <div class="mode-difficulty">🟡 СРЕДНЕ</div>
+                </div>
+                
+                <div class="mode-card" data-mode="code">
+                    <div class="mode-icon">💻</div>
+                    <h3>КОД-БАТТЛ</h3>
+                    <p>Решай задачи на скорость</p>
+                    <div class="mode-difficulty">🔴 СЛОЖНО</div>
+                </div>
+                
+                <div class="mode-card" data-mode="survival">
+                    <div class="mode-icon">☠️</div>
+                    <h3>ВЫЖИВАНИЕ</h3>
+                    <p>Баги появляются всё быстрее!</p>
+                    <div class="mode-difficulty">⚫ ХАРДКОР</div>
+                </div>
+            </div>
+            
+            <button id="backToMenuBtn" class="back-btn">
+                <i class="fas fa-arrow-left"></i> НАЗАД
+            </button>
+        </div>
+    </div>
+    
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div id="gameScreen" class="screen">
+        <!-- ИГРОВОЙ ХУД -->
+        <div class="game-hud">
+            <div class="hud-left">
+                <div class="hud-item">
+                    <span class="hud-label">РЕЖИМ:</span>
+                    <span class="hud-value" id="gameMode">КЛАССИКА</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">УРОВЕНЬ:</span>
+                    <span class="hud-value" id="gameLevel">1</span>
+                </div>
+            </div>
+            
+            <div class="hud-center">
+                <div class="score-display" id="scoreDisplay">
+                    <i class="fas fa-star"></i> <span id="scoreValue">000000</span>
+                </div>
+                <div class="time-display" id="timeDisplay">
+                    <i class="fas fa-clock"></i> <span id="timeValue">∞</span>с
+                </div>
+            </div>
+            
+            <div class="hud-right">
+                <div class="hud-item">
+                    <span class="hud-label">ЖИЗНИ:</span>
+                    <div class="hearts" id="heartsContainer">
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">ПОДАРКИ:</span>
+                    <span class="hud-value"><span id="giftsCount">0</span></span>
+                </div>
+            </div>
+            
+            <button id="gamePauseBtn" class="hud-btn">
+                <i class="fas fa-pause"></i>
+            </button>
+        </div>
+        
+        <!-- ИГРОВОЕ ПОЛЕ -->
+        <div class="game-field">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- ПРОГРЕСС БАР -->
+            <div class="progress-container" id="levelProgress">
+                <div class="progress-label">
+                    <span>Прогресс уровня:</span>
+                    <span id="progressText">0/5 подарков</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="levelProgressFill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- УПРАВЛЕНИЕ -->
+        <div class="game-controls">
+            <div class="control-row">
+                <button id="moveLeftBtn" class="control-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button id="moveUpBtn" class="control-btn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                <button id="moveRightBtn" class="control-btn">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="control-row">
+                <button id="actionBtn" class="action-btn">
+                    <i class="fas fa-bolt"></i> СУПЕР-ПРЫЖОК
+                </button>
+                <button id="specialBtn" class="special-btn">
+                    <i class="fas fa-code"></i> ДЕБАГ
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ЭКРАН ПАУЗЫ -->
+    <div id="pauseScreen" class="screen">
+        <div class="pause-container">
+            <h2 class="pause-title"><i class="fas fa-pause"></i> ПАУЗА</h2>
+            
+            <div class="pause-stats">
+                <div class="pause-stat">
+                    <div class="stat-name">Собрано подарков</div>
+                    <div class="stat-value" id="pauseGifts">0</div>
+                </div>
+                <div class="pause-stat">
+                    <div class="stat-name">Уничтожено багов</div>
+                    <div class="stat-value" id="pauseBugs">0</div>
+                </div>
+                <div class="pause-stat">
+                    <div class="stat-name">Время игры</div>
+                    <div class="stat-value" id="pauseTime">0:00</div>
+                </div>
+                <div class="pause-stat">
+                    <div class="stat-name">Точность</div>
+                    <div class="stat-value" id="pauseAccuracy">100%</div>
+                </div>
+                <div class="pause-stat">
+                    <div class="stat-name">Сложность</div>
+                    <div class="stat-value" id="pauseDifficulty">НОВИЧОК</div>
+                </div>
+            </div>
+            
+            <div class="pause-buttons">
+                <button id="resumeBtn" class="pause-btn">
+                    <i class="fas fa-play"></i> ПРОДОЛЖИТЬ
+                </button>
+                <button id="restartBtn" class="pause-btn">
+                    <i class="fas fa-redo"></i> ЗАНОВО
+                </button>
+                <button id="quitBtn" class="pause-btn">
+                    <i class="fas fa-home"></i> В МЕНЮ
+                </button>
+                <button id="saveBtn" class="pause-btn">
+                    <i class="fas fa-save"></i> СОХРАНИТЬ
+                </button>
+            </div>
+            
+            <div class="pause-tips">
+                <h4><i class="fas fa-lightbulb"></i> ПОДСКАЗКА</h4>
+                <p id="pauseTip">Используй кнопки для управления на телефоне! 📱</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ЭКРАН КОНЦА ИГРЫ -->
+    <div id="gameOverScreen" class="screen">
+        <div class="gameover-container">
+            <h1 id="gameOverTitle">ИГРА ОКОНЧЕНА!</h1>
+            
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span>ОЧКИ:</span>
+                    <span class="final-value" id="finalScore">0</span>
+                </div>
+                <div class="final-stat">
+                    <span>УРОВЕНЬ:</span>
+                    <span class="final-value" id="finalLevel">1</span>
+                </div>
+                <div class="final-stat">
+                    <span>ПОДАРКИ:</span>
+                    <span class="final-value" id="finalGifts">0</span>
+                </div>
+                <div class="final-stat">
+                    <span>ЖИЗНИ ОСТАЛОСЬ:</span>
+                    <span class="final-value" id="finalLives">0</span>
+                </div>
+                <div class="final-stat">
+                    <span>ДОСТИГНУТАЯ СЛОЖНОСТЬ:</span>
+                    <span class="final-value" id="finalDifficulty">НОВИЧОК</span>
+                </div>
+            </div>
+            
+            <!-- КНОПКИ ПОДЕЛИТЬСЯ -->
+            <div class="share-section">
+                <h3><i class="fas fa-share-alt"></i> ПОДЕЛИТЬСЯ РЕЗУЛЬТАТОМ</h3>
+                <div class="share-buttons">
+                    <button id="shareTelegramBtn" class="telegram-share-btn">
+                        <i class="fab fa-telegram"></i> ТЕЛЕГРАМ
+                    </button>
+                    <button id="shareWhatsappBtn" class="whatsapp-share-btn">
+                        <i class="fab fa-whatsapp"></i> WHATSAPP
+                    </button>
+                </div>
+                <p>Расскажи друзьям о своих новогодних достижениях! 🎅</p>
+            </div>
+            
+            <div class="gameover-buttons">
+                <button id="playAgainBtn" class="gameover-btn">
+                    <i class="fas fa-redo"></i> ИГРАТЬ СНОВА
+                </button>
+                <button id="menuBtn" class="gameover-btn">
+                    <i class="fas fa-home"></i> МЕНЮ
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ПАСХАЛЬНОЕ ЯЙЦО -->
+    <div class="easter-egg" id="easterEgg">
+        <h2><i class="fas fa-egg"></i> СЕКРЕТ НАЙДЕН! 🎄</h2>
+        <p id="easterMessage">Ты нашёл секретное послание от Дипсика!</p>
+        <button id="closeEasterBtn">ЗАКРЫТЬ</button>
+    </div>
+    
+    <!-- АУДИО ЭЛЕМЕНТЫ -->
+    <audio id="jumpSound" preload="auto"></audio>
+    <audio id="collectSound" preload="auto"></audio>
+    <audio id="hurtSound" preload="auto"></audio>
+    <audio id="victorySound" preload="auto"></audio>
+    <audio id="bgMusic" loop preload="auto"></audio>
+    
+    <!-- СКРИПТЫ -->
+    <script src="mobilecontrol.js"></script>
+    <script src="game.js"></script>
+    
+    <script>
+        // Создаём больше ёлочных шаров
+        function createChristmasBalls(count) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const ball = document.createElement('div');
+                    ball.className = 'christmas-ball';
+                    
+                    const colors = ['#B22222', '#FFD700', '#228B22', '#FF8C00', '#1E90FF'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    ball.style.background = color;
+                    
+                    const size = Math.random() * 25 + 15;
+                    ball.style.width = `${size}px`;
+                    ball.style.height = `${size}px`;
+                    
+                    ball.style.top = `${Math.random() * 90 + 5}%`;
+                    ball.style.left = `${Math.random() * 90 + 5}%`;
+                    ball.style.animationDelay = `${Math.random() * 6}s`;
+                    
+                    document.body.appendChild(ball);
+                }, i * 100);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            createChristmasBalls(10);
+        });
+    </script>
+</body>
+</html>
