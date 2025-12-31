@@ -52,26 +52,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ==================== ЗВУКИ ====================
     const sounds = {
-        jump: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-player-jumping-in-a-video-game-2043.mp3'),
-        collect: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3'),
-        hurt: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-game-over-470.mp3'),
-        victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-arcade-tone-2019.mp3'),
-        levelUp: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3'),
-        snow: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-300.mp3'),
-        click: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3'),
-        bgMusic: new Audio('https://assets.mixkit.co/music/preview/mixkit-christmas-time-119.mp3'),
-        snowstorm: new Audio('https://assets.mixkit.co/music/preview/mixkit-christmas-magic-181.mp3')
+        jump: new Audio('assets/sounds/jump.mp3'),
+        collect: new Audio('assets/sounds/collect.mp3'),
+        hurt: new Audio('assets/sounds/hurt.mp3'),
+        victory: new Audio('assets/sounds/victory.mp3'),
+        bgMusic: new Audio('assets/sounds/bg_music.mp3'),
+        snowstorm: new Audio('assets/sounds/dfng.mp3'),
+        click: new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ')
     };
     
+    // Заглушка для звука клика (если файла нет)
+    sounds.click.volume = 0.3;
+    
     // Настройка звуков
-    Object.values(sounds).forEach(sound => {
-        sound.volume = 0.5;
-        sound.preload = 'auto';
+    Object.keys(sounds).forEach(key => {
+        if (key !== 'click') {
+            sounds[key].volume = 0.5;
+            sounds[key].preload = 'auto';
+        }
     });
     sounds.bgMusic.volume = 0.3;
     sounds.bgMusic.loop = true;
     sounds.snowstorm.volume = 0.2;
     sounds.snowstorm.loop = true;
+    
+    // Функция безопасного воспроизведения звука
+    function playSound(sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Звук не воспроизводится:', e));
+    }
     
     // ==================== КАНВАС ====================
     const canvas = document.getElementById('gameCanvas');
@@ -173,8 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.canJump) {
                 this.speedY = -15;
                 this.canJump = false;
-                sounds.jump.currentTime = 0;
-                sounds.jump.play().catch(e => console.log('Звук прыжка:', e));
+                playSound(sounds.jump);
             }
         },
         
@@ -182,8 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.canJump) {
                 this.speedY = -25;
                 this.canJump = false;
-                sounds.jump.currentTime = 0;
-                sounds.jump.play();
+                playSound(sounds.jump);
             }
         },
         
@@ -209,8 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.isHurt = true;
             this.hurtTimer = 60;
             
-            sounds.hurt.currentTime = 0;
-            sounds.hurt.play().catch(e => console.log('Звук урона:', e));
+            playSound(sounds.hurt);
             
             setTimeout(() => {
                 this.isInvincible = false;
@@ -384,8 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         createSnowParticles(200);
         
-        sounds.snowstorm.currentTime = 0;
-        sounds.snowstorm.play().catch(e => console.log('Звук снегопада:', e));
+        playSound(sounds.snowstorm);
         
         const snowNotification = document.getElementById('snowNotification') || document.createElement('div');
         snowNotification.id = 'snowNotification';
@@ -517,16 +522,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (obj.type === 'gift') {
                         gameState.score += 100;
                         gameState.gifts++;
-                        sounds.collect.currentTime = 0;
-                        sounds.collect.play().catch(e => console.log('Звук сбора:', e));
+                        playSound(sounds.collect);
                         createParticles(obj.x, obj.y, obj.color, 20);
                         
                         updateLevelProgress();
                         
                         if (gameState.gifts % 5 === 0) {
                             gameState.level++;
-                            sounds.victory.currentTime = 0;
-                            sounds.victory.play().catch(e => console.log('Звук победы:', e));
+                            playSound(sounds.victory);
                             showNotification(`🎮 Уровень ${gameState.level}!`, '#FFD700');
                         }
                     } else if (obj.type === 'bug') {
@@ -543,8 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         gameState.bugsDestroyed++;
                     } else if (obj.type === 'snowflake') {
                         activateSnowstorm();
-                        sounds.collect.currentTime = 0;
-                        sounds.collect.play();
+                        playSound(sounds.collect);
                         createParticles(obj.x, obj.y, '#00aaff', 30);
                     }
                     
@@ -744,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1500);
     }
     
-    // ==================== МОБИЛЬНОЕ УПРАВЛЕНИЕ (КАК В deepseek_javascript_20251231_c786ac.js) ====================
+    // ==================== МОБИЛЬНОЕ УПРАВЛЕНИЕ ====================
     function createMobileControls() {
         if (document.getElementById('mobileCompactControls')) return;
         
@@ -970,7 +972,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function pauseGame() {
         gamePaused = !gamePaused;
-        sounds.click.play().catch(e => console.log('Звук клика:', e));
+        playSound(sounds.click);
         
         if (gamePaused) {
             // Обновляем статистику в паузе
@@ -1037,22 +1039,75 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isDefeat) {
             document.getElementById('gameOverTitle').textContent = 'ИГРА ОКОНЧЕНА! 💀';
             document.getElementById('resultIcon').innerHTML = '<i class="fas fa-skull-crossbones" style="font-size: 4rem; color: #B22222;"></i>';
-            sounds.hurt.currentTime = 0;
-            sounds.hurt.play().catch(e => console.log('Звук поражения:', e));
+            playSound(sounds.hurt);
         } else {
             document.getElementById('gameOverTitle').textContent = 'ПОБЕДА! 🏆';
             document.getElementById('resultIcon').innerHTML = '<i class="fas fa-trophy" style="font-size: 4rem; color: #FFD700;"></i>';
-            sounds.victory.currentTime = 0;
-            sounds.victory.play().catch(e => console.log('Звук победы:', e));
+            playSound(sounds.victory);
         }
         
         hideAllScreens();
         document.getElementById('gameOverScreen').classList.add('active');
         
+        // Обновляем кнопки поделиться
+        updateShareButtons();
+        
         // Скрываем мобильное управление
         removeMobileControls();
         const gameControls = document.querySelector('.game-controls');
         if (gameControls) gameControls.style.display = 'none';
+    }
+    
+    // ==================== ФУНКЦИИ ДЛЯ СОЦИАЛЬНЫХ КНОПОК ====================
+    function updateShareButtons() {
+        // Эти данные будут использоваться в кнопках поделиться
+        const shareData = {
+            gifts: gameState.gifts,
+            bugs: gameState.bugsDestroyed,
+            score: gameState.score,
+            level: gameState.level,
+            difficulty: currentDifficulty.name,
+            url: 'https://deepseekforever.github.io/game/'
+        };
+        
+        // Сохраняем данные для кнопок
+        window.shareData = shareData;
+    }
+    
+    function shareToTelegram() {
+        const data = window.shareData || {
+            gifts: gameState.gifts,
+            bugs: gameState.bugsDestroyed,
+            score: gameState.score,
+            level: gameState.level,
+            difficulty: currentDifficulty.name,
+            url: 'https://deepseekforever.github.io/game/'
+        };
+        
+        const message = `🎮 Я поиграл в DIPSIK: НОВОГОДНИЙ КВЕСТ! 🎄\n\n✨ Собрано подарков: ${data.gifts} 🎁\n🐛 Уничтожено багов: ${data.bugs}\n🏆 Очки: ${data.score}\n📈 Уровень: ${data.level}\n🔥 Сложность: ${data.difficulty}\n\n🎄 Поиграть можно тут: ${data.url}\n\n#DeepSeekНГ #НовогодняяИгра #DIPSIK`;
+        
+        const encodedMessage = encodeURIComponent(message);
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(data.url)}&text=${encodedMessage}`;
+        
+        window.open(shareUrl, '_blank', 'width=600,height=500');
+    }
+    
+    function shareToWhatsApp() {
+        const data = window.shareData || {
+            gifts: gameState.gifts,
+            bugs: gameState.bugsDestroyed,
+            score: gameState.score,
+            level: gameState.level,
+            difficulty: currentDifficulty.name,
+            url: 'https://deepseekforever.github.io/game/'
+        };
+        
+        const message = `🎮 Я поиграл в DIPSIK: НОВОГОДНИЙ КВЕСТ! 🎄\n\n✨ Собрано подарков: ${data.gifts} 🎁\n🐛 Уничтожено багов: ${data.bugs}\n🏆 Очки: ${data.score}\n📈 Уровень: ${data.level}\n🔥 Сложность: ${data.difficulty}\n\n🎄 Поиграть можно тут: ${data.url}\n\n#DeepSeekНГ #НовогодняяИгра #DIPSIK`;
+        
+        const encodedMessage = encodeURIComponent(message);
+        const shareUrl = `https://wa.me/?text=${encodedMessage}`;
+        
+        window.open(shareUrl, '_blank');
     }
     
     function hideAllScreens() {
@@ -1097,21 +1152,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ==================== КНОПКИ МЕНЮ ====================
         document.getElementById('startGameBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             hideAllScreens();
             document.getElementById('modeScreen').classList.add('active');
         });
         
         document.querySelectorAll('.mode-card').forEach(card => {
             card.addEventListener('click', function() {
-                sounds.click.play().catch(e => console.log('Звук клика:', e));
+                playSound(sounds.click);
                 const mode = this.getAttribute('data-mode');
                 startGame(mode);
             });
         });
         
         document.getElementById('backToMenuBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
         });
@@ -1120,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gamePauseBtn').addEventListener('click', pauseGame);
         
         document.getElementById('resumeBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             gamePaused = false;
             document.getElementById('pauseScreen').classList.remove('active');
             if (gameRunning) {
@@ -1132,12 +1187,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('restartBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             startGame(gameState.gameMode || GAME_MODES.CLASSIC);
         });
         
         document.getElementById('quitBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             gameRunning = false;
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             sounds.bgMusic.pause();
@@ -1150,18 +1205,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('saveBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             saveGameState();
             showNotification('💾 Игра сохранена!', '#32CD32');
         });
         
         document.getElementById('playAgainBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             startGame(gameState.gameMode || GAME_MODES.CLASSIC);
         });
         
         document.getElementById('menuBtn').addEventListener('click', function() {
-            sounds.click.play().catch(e => console.log('Звук клика:', e));
+            playSound(sounds.click);
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
             sounds.bgMusic.pause();
@@ -1211,8 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     if (destroyed > 0) {
-                        sounds.collect.currentTime = 0;
-                        sounds.collect.play();
+                        playSound(sounds.collect);
                         showNotification(`🐛 Удалено ${destroyed} багов!`, '#32CD32');
                     }
                     break;
@@ -1307,8 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 if (destroyed > 0) {
-                    sounds.collect.currentTime = 0;
-                    sounds.collect.play();
+                    playSound(sounds.collect);
                     showNotification(`🐛 Удалено ${destroyed} багов!`, '#32CD32');
                 }
                 this.classList.add('active');
@@ -1320,25 +1373,56 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // ==================== КНОПКИ ПОДЕЛИТЬСЯ ====================
+        document.getElementById('shareTelegramBtn').addEventListener('click', shareToTelegram);
+        document.getElementById('shareWhatsappBtn').addEventListener('click', shareToWhatsApp);
+        
         // ==================== ЧИТ-КОДЫ ====================
         document.getElementById('cheatBtn').addEventListener('click', function() {
             const code = document.getElementById('cheatInput').value.toUpperCase();
             const cheats = {
-                'DIPSIK2024': () => { gameState.score += 10000; updateHUD(); showNotification('🎅 +10000 очков!', '#FFD700'); },
-                'SNOWMAGIC': () => { activateSnowstorm(); },
-                'INVINCIBLE': () => { player.isInvincible = true; setTimeout(() => player.isInvincible = false, 10000); showNotification('🛡️ Бессмертие на 10 сек!', '#FFFF00'); },
-                'GIFTS': () => { for (let i = 0; i < 10; i++) createGift(); showNotification('🎁 +10 подарков!', '#32CD32'); },
-                'HEAL': () => { gameState.lives = 5; updateHearts(); showNotification('💖 +5 жизней!', '#FF69B4'); },
-                'LEVELUP': () => { gameState.level++; updateDifficultyDisplay(); updateHUD(); showNotification('⭐ Уровень повышен!', '#FFD700'); }
+                'DIPSIK2024': () => { 
+                    gameState.score += 10000; 
+                    updateHUD(); 
+                    showNotification('🎅 +10000 очков!', '#FFD700'); 
+                    playSound(sounds.victory);
+                },
+                'SNOWMAGIC': () => { 
+                    activateSnowstorm(); 
+                    playSound(sounds.victory);
+                },
+                'INVINCIBLE': () => { 
+                    player.isInvincible = true; 
+                    setTimeout(() => player.isInvincible = false, 10000); 
+                    showNotification('🛡️ Бессмертие на 10 сек!', '#FFFF00'); 
+                    playSound(sounds.victory);
+                },
+                'GIFTS': () => { 
+                    for (let i = 0; i < 10; i++) createGift(); 
+                    showNotification('🎁 +10 подарков!', '#32CD32'); 
+                    playSound(sounds.victory);
+                },
+                'HEAL': () => { 
+                    gameState.lives = 5; 
+                    updateHearts(); 
+                    showNotification('💖 +5 жизней!', '#FF69B4'); 
+                    playSound(sounds.victory);
+                },
+                'LEVELUP': () => { 
+                    gameState.level++; 
+                    updateDifficultyDisplay(); 
+                    updateHUD(); 
+                    showNotification('⭐ Уровень повышен!', '#FFD700'); 
+                    playSound(sounds.victory);
+                }
             };
             
             if (cheats[code]) {
                 cheats[code]();
                 document.getElementById('cheatInput').value = '';
-                sounds.victory.play();
             } else {
                 showNotification('❌ Неверный чит-код!', '#B22222');
-                sounds.hurt.play();
+                playSound(sounds.hurt);
             }
         });
         
@@ -1350,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ==================== ПАСХАЛЬНЫЕ КНОПКИ ====================
         document.getElementById('howToPlayBtn').addEventListener('click', function() {
-            sounds.click.play();
+            playSound(sounds.click);
             document.getElementById('easterMessage').innerHTML = '🎮 <b>ПОЛНОЕ РУКОВОДСТВО:</b><br><br>' +
                                      '<b>Управление:</b><br>' +
                                      '← → / A/D - движение<br>' +
@@ -1369,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('settingsBtn').addEventListener('click', function() {
-            sounds.click.play();
+            playSound(sounds.click);
             document.getElementById('easterMessage').innerHTML = '⚙️ <b>НАСТРОЙКИ</b><br><br>' +
                                      'Звук: ВКЛ (громкость 50%)<br>' +
                                      'Музыка: ВКЛ (новогодняя)<br>' +
@@ -1381,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('creditsBtn').addEventListener('click', function() {
-            sounds.click.play();
+            playSound(sounds.click);
             document.getElementById('easterMessage').innerHTML = '👨‍💻 <b>АВТОРЫ И БЛАГОДАРНОСТИ</b><br><br>' +
                                      '<b>Главный герой:</b> DIPSIK<br>' +
                                      '<b>Дизайн и программирование:</b> AI Assistant<br>' +
@@ -1394,20 +1478,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('closeEasterBtn').addEventListener('click', function() {
-            sounds.click.play();
+            playSound(sounds.click);
             document.getElementById('easterEgg').style.display = 'none';
-        });
-        
-        // ==================== ПОДЕЛИТЬСЯ ====================
-        document.getElementById('shareTelegramBtn').addEventListener('click', function() {
-            const text = `🎮 Я набрал ${gameState.score} очков в игре DIPSIK: Новогодний Квест! Попробуй и ты!`;
-            const url = window.location.href;
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
-        });
-        
-        document.getElementById('shareWhatsappBtn').addEventListener('click', function() {
-            const text = `🎮 Я набрал ${gameState.score} очков в игре DIPSIK: Новогодний Квест! Попробуй и ты! ${window.location.href}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         });
         
         // ==================== ЗАГРУЗКА СОХРАНЕНИЙ ====================
@@ -1427,9 +1499,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('✅ Полная версия игры готова!');
         console.log('🎮 Режимы:', Object.keys(GAME_MODES));
-        console.log('🎵 Звуки загружены');
+        console.log('🎵 Звуки загружены из папки assets/sounds/');
         console.log('📱 Мобильное управление настроено');
         console.log('💾 Сохранения загружены');
+        console.log('📱 Кнопки поделиться настроены');
     }
     
     // Запуск инициализации
