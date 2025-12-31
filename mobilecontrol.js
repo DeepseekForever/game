@@ -506,3 +506,16 @@ document.addEventListener('DOMContentLoaded', function() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MobileControl;
 }
+// В конце файла mobilecontrol.js добавь:
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматически показываем управление на телефонах
+    setTimeout(() => {
+        if (window.innerWidth <= 768 || 'ontouchstart' in window) {
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) {
+                gameControls.style.display = 'flex';
+                console.log('📱 Мобильное управление показано');
+            }
+        }
+    }, 500);
+});
