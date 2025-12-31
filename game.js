@@ -1,5 +1,5 @@
 // ============================================
-// DIPSIK: НОВОГОДНИЙ КВЕСТ - ПОЛНЫЙ КОД СО ВСЕМИ ФУНКЦИЯМИ
+// DIPSIK: НОВОГОДНИЙ КВЕСТ - ПОЛНЫЙ КОД СО ВСЕМ ФУНКЦИОНАЛОМ
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,10 +14,16 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const DIFFICULTY = {
-        EASY: { name: 'НОВИЧОК', speed: 1, spawnRate: 1.0 },
-        MEDIUM: { name: 'ПРОГРАММИСТ', speed: 1.3, spawnRate: 1.5 },
-        HARD: { name: 'ХАКЕР', speed: 1.7, spawnRate: 2.0 },
-        HARDCORE: { name: 'БОГ КОДА', speed: 2.2, spawnRate: 2.5 }
+        1: { name: 'НОВИЧОК', color: "#32CD32", giftSpeed: 2, bugSpeed: 3, bugSpawnRate: 0.2, giftSpawnRate: 0.8, snowflakeChance: 0.05 },
+        2: { name: 'УЧЕНИК', color: "#7CFC00", giftSpeed: 2.5, bugSpeed: 3.5, bugSpawnRate: 0.25, giftSpawnRate: 0.75, snowflakeChance: 0.06 },
+        3: { name: 'ОПЫТНЫЙ', color: "#FFD700", giftSpeed: 3, bugSpeed: 4, bugSpawnRate: 0.3, giftSpawnRate: 0.7, snowflakeChance: 0.07 },
+        4: { name: 'ПРОФИ', color: "#FF8C00", giftSpeed: 3.5, bugSpeed: 4.5, bugSpawnRate: 0.35, giftSpawnRate: 0.65, snowflakeChance: 0.08 },
+        5: { name: 'МАСТЕР', color: "#FF4500", giftSpeed: 4, bugSpeed: 5, bugSpawnRate: 0.4, giftSpawnRate: 0.6, snowflakeChance: 0.09 },
+        6: { name: 'ЭКСПЕРТ', color: "#DC143C", giftSpeed: 4.5, bugSpeed: 5.5, bugSpawnRate: 0.45, giftSpawnRate: 0.55, snowflakeChance: 0.1 },
+        7: { name: 'ГУРУ', color: "#8B0000", giftSpeed: 5, bugSpeed: 6, bugSpawnRate: 0.5, giftSpawnRate: 0.5, snowflakeChance: 0.11 },
+        8: { name: 'ЛЕГЕНДА', color: "#4B0082", giftSpeed: 5.5, bugSpeed: 6.5, bugSpawnRate: 0.55, giftSpawnRate: 0.45, snowflakeChance: 0.12 },
+        9: { name: 'БОГ КОДА', color: "#9400D3", giftSpeed: 6, bugSpeed: 7, bugSpawnRate: 0.6, giftSpawnRate: 0.4, snowflakeChance: 0.13 },
+        10: { name: 'НЕВОЗМОЖНО', color: "#000000", giftSpeed: 7, bugSpeed: 8, bugSpawnRate: 0.7, giftSpawnRate: 0.3, snowflakeChance: 0.15 }
     };
     
     let gameRunning = false;
@@ -26,11 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let lastTime = 0;
     let spawnTimer = 0;
     let gameTime = 0;
-    let levelTimer = 0;
-    let currentDifficulty = DIFFICULTY.EASY;
-    let snowMode = false;
-    let snowTimer = 0;
-    let cheatsActive = {};
+    let snowstormActive = false;
+    let snowstormTimer = 0;
+    let currentDifficulty = DIFFICULTY[1];
     
     // ==================== ИГРОВОЕ СОСТОЯНИЕ ====================
     const gameState = {
@@ -38,15 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
         lives: 3,
         gifts: 0,
         level: 1,
-        bugsKilled: 0,
-        totalObjects: 0,
-        accuracy: 100,
+        difficulty: 1,
+        bugsDestroyed: 0,
         gameMode: GAME_MODES.CLASSIC,
         highScore: parseInt(localStorage.getItem('dipsikHighScore')) || 0,
         totalGames: parseInt(localStorage.getItem('dipsikTotalGames')) || 0,
-        linesCollected: parseInt(localStorage.getItem('dipsikLinesCollected')) || 0,
-        bestTime: parseInt(localStorage.getItem('dipsikBestTime')) || 0,
-        achievements: JSON.parse(localStorage.getItem('dipsikAchievements')) || []
+        linesCollected: parseInt(localStorage.getItem('dipsikLinesCollected')) || 0
     };
     
     // ==================== ЗВУКИ ====================
@@ -58,16 +59,19 @@ document.addEventListener('DOMContentLoaded', function() {
         levelUp: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3'),
         snow: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-300.mp3'),
         click: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3'),
-        bgMusic: new Audio('https://assets.mixkit.co/music/preview/mixkit-christmas-time-119.mp3')
+        bgMusic: new Audio('https://assets.mixkit.co/music/preview/mixkit-christmas-time-119.mp3'),
+        snowstorm: new Audio('https://assets.mixkit.co/music/preview/mixkit-christmas-magic-181.mp3')
     };
     
     // Настройка звуков
     Object.values(sounds).forEach(sound => {
-        sound.volume = 0.3;
+        sound.volume = 0.5;
         sound.preload = 'auto';
     });
-    sounds.bgMusic.volume = 0.2;
+    sounds.bgMusic.volume = 0.3;
     sounds.bgMusic.loop = true;
+    sounds.snowstorm.volume = 0.2;
+    sounds.snowstorm.loop = true;
     
     // ==================== КАНВАС ====================
     const canvas = document.getElementById('gameCanvas');
@@ -80,24 +84,24 @@ document.addEventListener('DOMContentLoaded', function() {
         width: 60,
         height: 60,
         speed: 7,
-        speedY: 0,
         isMovingLeft: false,
         isMovingRight: false,
         canJump: true,
+        speedY: 0,
         isInvincible: false,
-        invincibleTimer: 0,
-        isSuper: false,
-        superTimer: 0,
-        color: '#00ffff',
+        isHurt: false,
+        hurtTimer: 0,
         
         draw() {
-            // Эффект неуязвимости
-            if (this.isInvincible) {
-                ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 100) * 0.3;
+            // Отражение при движении влево
+            if (this.isMovingLeft && !this.isMovingRight) {
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.translate(-this.x * 2, 0);
             }
             
-            // Основной круг
-            ctx.fillStyle = this.isSuper ? '#FFD700' : this.color;
+            // Тело игрока
+            ctx.fillStyle = this.isHurt ? '#ff4444' : '#00ffff';
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.width/2, 0, Math.PI * 2);
             ctx.fill();
@@ -124,85 +128,73 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.stroke();
             
             // Имя
-            ctx.fillStyle = this.isSuper ? '#B22222' : '#FFD700';
+            ctx.fillStyle = '#FFD700';
             ctx.font = 'bold 14px "Mountains of Christmas", Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('DIPSIK', this.x, this.y + 30);
             
-            // Эффект супер-режима
-            if (this.isSuper) {
-                ctx.strokeStyle = '#FF8C00';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.width/2 + 5, 0, Math.PI * 2);
-                ctx.stroke();
+            // Эффект неуязвимости
+            if (this.isInvincible && Math.floor(Date.now() / 100) % 2 === 0) {
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+                ctx.globalAlpha = 1;
             }
             
-            ctx.globalAlpha = 1.0;
+            if (this.isMovingLeft && !this.isMovingRight) {
+                ctx.restore();
+            }
         },
         
-        update(deltaTime) {
-            // Движение
-            if (this.isMovingLeft) this.x -= this.speed * currentDifficulty.speed;
-            if (this.isMovingRight) this.x += this.speed * currentDifficulty.speed;
+        update() {
+            if (this.isMovingLeft) this.x -= this.speed;
+            if (this.isMovingRight) this.x += this.speed;
             
-            // Гравитация
             this.speedY += 0.5;
             this.y += this.speedY;
             
-            // Границы
             if (this.x - this.width/2 < 0) this.x = this.width/2;
             if (this.x + this.width/2 > canvas.width) this.x = canvas.width - this.width/2;
             
-            // Пол
             if (this.y + this.height/2 > canvas.height - 50) {
                 this.y = canvas.height - 50 - this.height/2;
                 this.speedY = 0;
                 this.canJump = true;
             }
             
-            // Таймеры
-            if (this.isInvincible) {
-                this.invincibleTimer -= deltaTime;
-                if (this.invincibleTimer <= 0) {
-                    this.isInvincible = false;
-                }
-            }
-            
-            if (this.isSuper) {
-                this.superTimer -= deltaTime;
-                if (this.superTimer <= 0) {
-                    this.isSuper = false;
-                }
+            if (this.isHurt) {
+                this.hurtTimer--;
+                if (this.hurtTimer <= 0) this.isHurt = false;
             }
         },
         
         jump() {
             if (this.canJump) {
-                this.speedY = -15 * currentDifficulty.speed;
+                this.speedY = -15;
                 this.canJump = false;
                 sounds.jump.currentTime = 0;
-                sounds.jump.play();
+                sounds.jump.play().catch(e => console.log('Звук прыжка:', e));
             }
         },
         
         superJump() {
             if (this.canJump) {
-                this.speedY = -25 * currentDifficulty.speed;
+                this.speedY = -25;
                 this.canJump = false;
                 sounds.jump.currentTime = 0;
                 sounds.jump.play();
-                this.activateSuper(2000);
             }
         },
         
         moveLeft() {
             this.isMovingLeft = true;
+            this.isMovingRight = false;
         },
         
         moveRight() {
             this.isMovingRight = true;
+            this.isMovingLeft = false;
         },
         
         stop() {
@@ -210,538 +202,258 @@ document.addEventListener('DOMContentLoaded', function() {
             this.isMovingRight = false;
         },
         
-        hurt() {
-            if (this.isInvincible || this.isSuper) return false;
+        takeDamage() {
+            if (this.isInvincible) return false;
             
             this.isInvincible = true;
-            this.invincibleTimer = 1500;
+            this.isHurt = true;
+            this.hurtTimer = 60;
+            
             sounds.hurt.currentTime = 0;
-            sounds.hurt.play();
+            sounds.hurt.play().catch(e => console.log('Звук урона:', e));
+            
+            setTimeout(() => {
+                this.isInvincible = false;
+                this.isHurt = false;
+            }, 2000);
+            
             return true;
-        },
-        
-        activateSuper(duration = 5000) {
-            this.isSuper = true;
-            this.superTimer = duration;
-            this.color = '#FFD700';
-        },
-        
-        collectPower(powerType) {
-            switch(powerType) {
-                case 'invincible':
-                    this.isInvincible = true;
-                    this.invincibleTimer = 5000;
-                    break;
-                case 'super':
-                    this.activateSuper(7000);
-                    break;
-                case 'speed':
-                    this.speed = 12;
-                    setTimeout(() => this.speed = 7, 5000);
-                    break;
-            }
         }
     };
     
     // ==================== ОБЪЕКТЫ ИГРЫ ====================
     const fallingObjects = [];
     const particles = [];
-    const powerUps = [];
+    const snowParticles = [];
     
-    class GameObject {
-        constructor(type, x, y, width, height) {
-            this.type = type;
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this.speed = 0;
-            this.collected = false;
-            this.rotation = 0;
-            this.alpha = 1;
-        }
-        
-        update(deltaTime) {
-            this.y += this.speed * currentDifficulty.speed;
-            this.rotation += 0.02;
-            return this.y > canvas.height + 50;
-        }
-        
-        draw() {
-            if (this.collected) return;
+    function createGift() {
+        const difficulty = DIFFICULTY[gameState.difficulty];
+        fallingObjects.push({
+            type: 'gift',
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: -30,
+            width: 50,
+            height: 50,
+            speed: difficulty.giftSpeed + Math.random() * 1,
+            color: `hsl(${Math.floor(Math.random() * 60) + 100}, 100%, 50%)`,
+            collected: false,
             
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation);
-            ctx.globalAlpha = this.alpha;
+            draw() {
+                if (this.collected) return;
+                
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+                
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(this.x - this.width/2, this.y - 5, this.width, 10);
+                ctx.fillRect(this.x - 5, this.y - this.height/2, 10, this.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🎁', this.x, this.y);
+            },
             
-            this.drawSpecific();
-            
-            ctx.restore();
-        }
-        
-        drawSpecific() {
-            // Переопределяется в дочерних классах
-        }
-        
-        checkCollision() {
-            const dx = player.x - this.x;
-            const dy = player.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            return distance < (player.width/2 + this.width/2);
-        }
-    }
-    
-    class Gift extends GameObject {
-        constructor(x, y) {
-            super('gift', x, y, 50, 50);
-            this.speed = 3 + Math.random() * 2;
-            this.color = this.getRandomColor();
-            this.value = 100;
-        }
-        
-        getRandomColor() {
-            const colors = ['#FF0000', '#228B22', '#1E90FF', '#FF8C00', '#8A2BE2'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-        
-        drawSpecific() {
-            // Коробка
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
-            
-            // Лента
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(-this.width/2, -5, this.width, 10);
-            ctx.fillRect(-5, -this.height/2, 10, this.height);
-            
-            // Бант
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(0, 0, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🎁', 0, 0);
-        }
-        
-        collect() {
-            if (this.collected) return false;
-            this.collected = true;
-            
-            gameState.score += this.value;
-            gameState.gifts++;
-            gameState.linesCollected++;
-            
-            // Эффект частиц
-            createParticles(this.x, this.y, 10, this.color);
-            
-            // Проверка уровня
-            if (gameState.gifts % 5 === 0) {
-                levelUp();
+            update() {
+                this.y += this.speed;
+                return this.y > canvas.height + 30;
             }
-            
-            sounds.collect.currentTime = 0;
-            sounds.collect.play();
-            showNotification('🎁 +' + this.value + ' очков!', '#32CD32');
-            
-            return true;
-        }
+        });
     }
     
-    class Bug extends GameObject {
-        constructor(x, y) {
-            super('bug', x, y, 45, 45);
-            this.speed = 4 + Math.random() * 2;
-            this.rotationSpeed = 0.05;
-        }
-        
-        update(deltaTime) {
-            this.y += this.speed * currentDifficulty.speed;
-            this.rotation += this.rotationSpeed;
-            this.x += Math.sin(Date.now() / 500 + this.y / 100) * 2;
-            return this.y > canvas.height + 50;
-        }
-        
-        drawSpecific() {
-            // Тело
-            ctx.fillStyle = '#B22222';
-            ctx.beginPath();
-            ctx.arc(0, 0, this.width/2, 0, Math.PI * 2);
-            ctx.fill();
+    function createBug() {
+        const difficulty = DIFFICULTY[gameState.difficulty];
+        fallingObjects.push({
+            type: 'bug',
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: -30,
+            width: 45,
+            height: 45,
+            speed: difficulty.bugSpeed + Math.random() * 1,
+            color: '#B22222',
+            collected: false,
             
-            // Глаза
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(-8, -8, 4, 0, Math.PI * 2);
-            ctx.arc(8, -8, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Зрачки
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(-8, -8, 2, 0, Math.PI * 2);
-            ctx.arc(8, -8, 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Рот
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, 5, 6, 0.2, Math.PI - 0.2);
-            ctx.stroke();
-            
-            // Текст
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('BUG', 0, 20);
-            
-            // Антенны
-            ctx.strokeStyle = '#8B0000';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(-5, -20);
-            ctx.lineTo(-15, -30);
-            ctx.moveTo(5, -20);
-            ctx.lineTo(15, -30);
-            ctx.stroke();
-        }
-        
-        collect() {
-            if (this.collected || player.isInvincible || player.isSuper) return false;
-            this.collected = true;
-            
-            if (player.hurt()) {
-                gameState.lives--;
+            draw() {
+                if (this.collected) return;
                 
-                // Эффект частиц
-                createParticles(this.x, this.y, 15, '#B22222');
-                
-                sounds.hurt.currentTime = 0;
-                sounds.hurt.play();
-                showNotification('💔 -1 жизнь!', '#DC143C');
-                
-                if (gameState.lives <= 0) {
-                    setTimeout(gameOver, 500);
-                }
-            }
-            
-            return true;
-        }
-    }
-    
-    class Snowflake extends GameObject {
-        constructor(x, y) {
-            super('snowflake', x, y, 35, 35);
-            this.speed = 8 + Math.random() * 4;
-            this.rotation = Math.random() * Math.PI * 2;
-        }
-        
-        update(deltaTime) {
-            this.y += this.speed * currentDifficulty.speed;
-            this.rotation += 0.03;
-            this.x += Math.sin(Date.now() / 200 + this.y / 50) * 2;
-            return this.y > canvas.height + 50;
-        }
-        
-        drawSpecific() {
-            ctx.strokeStyle = '#00aaff';
-            ctx.lineWidth = 2;
-            ctx.globalAlpha = 0.8;
-            
-            for (let i = 0; i < 6; i++) {
-                ctx.rotate(Math.PI / 3);
+                ctx.fillStyle = this.color;
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(15, 0);
-                ctx.stroke();
+                ctx.arc(this.x, this.y, this.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x - 8, this.y - 8, 4, 0, Math.PI * 2);
+                ctx.arc(this.x + 8, this.y - 8, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(this.x - 8, this.y - 8, 2, 0, Math.PI * 2);
+                ctx.arc(this.x + 8, this.y - 8, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('BUG', this.x, this.y + 5);
+            },
+            
+            update() {
+                this.y += this.speed;
+                return this.y > canvas.height + 30;
             }
-            
-            ctx.fillStyle = '#00aaff';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('❄️', 0, 0);
-        }
-        
-        collect() {
-            if (this.collected) return false;
-            this.collected = true;
-            
-            if (gameState.lives < 5) {
-                gameState.lives++;
-                showNotification('❄️ +1 жизнь!', '#00aaff');
-            } else {
-                gameState.score += 200;
-                showNotification('❄️ +200 очков!', '#00aaff');
-            }
-            
-            createParticles(this.x, this.y, 12, '#00aaff');
-            sounds.snow.currentTime = 0;
-            sounds.snow.play();
-            
-            return true;
-        }
+        });
     }
     
-    class PowerUp extends GameObject {
-        constructor(x, y, type) {
-            super('powerup', x, y, 40, 40);
-            this.speed = 2 + Math.random() * 1;
-            this.type = type;
-            this.colors = {
-                invincible: '#FFFF00',
-                super: '#FFD700',
-                speed: '#32CD32',
-                time: '#1E90FF'
-            };
-            this.pulse = 0;
-        }
-        
-        update(deltaTime) {
-            this.y += this.speed * currentDifficulty.speed;
-            this.pulse = Math.sin(Date.now() / 200) * 5;
-            return this.y > canvas.height + 50;
-        }
-        
-        drawSpecific() {
-            const size = this.width + this.pulse;
+    function createSnowflake() {
+        fallingObjects.push({
+            type: 'snowflake',
+            x: Math.random() * (canvas.width - 30) + 15,
+            y: -40,
+            width: 35,
+            height: 35,
+            speed: 8 + Math.random() * 4,
+            collected: false,
             
-            // Внешний круг
-            ctx.fillStyle = this.colors[this.type] || '#FFFFFF';
-            ctx.beginPath();
-            ctx.arc(0, 0, size/2, 0, Math.PI * 2);
-            ctx.fill();
+            draw() {
+                if (this.collected) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(Date.now() / 100);
+                ctx.strokeStyle = '#00aaff';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 6; i++) {
+                    ctx.rotate(Math.PI / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(15, 0);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                
+                ctx.fillStyle = '#00aaff';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('❄️', this.x, this.y);
+            },
             
-            // Внутренний круг
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(0, 0, size/2 - 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Иконка
-            ctx.fillStyle = this.colors[this.type] || '#FFFFFF';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            const icons = {
-                invincible: '🛡️',
-                super: '⚡',
-                speed: '💨',
-                time: '⏰'
-            };
-            
-            ctx.fillText(icons[this.type] || '❓', 0, 0);
-        }
-        
-        collect() {
-            if (this.collected) return false;
-            this.collected = true;
-            
-            player.collectPower(this.type);
-            
-            let message = '';
-            switch(this.type) {
-                case 'invincible': message = '🛡️ Неуязвимость!'; break;
-                case 'super': message = '⚡ Супер-сила!'; break;
-                case 'speed': message = '💨 Супер-скорость!'; break;
-                case 'time': message = '⏰ +10 секунд!'; break;
+            update() {
+                this.y += this.speed;
+                this.x += Math.sin(Date.now() / 200 + this.y / 50) * 2;
+                return this.y > canvas.height + 40;
             }
-            
-            createParticles(this.x, this.y, 15, this.colors[this.type]);
-            sounds.collect.currentTime = 0;
-            sounds.collect.play();
-            showNotification(message, this.colors[this.type]);
-            
-            return true;
-        }
+        });
     }
     
-    class CodeSnippet extends GameObject {
-        constructor(x, y) {
-            super('code', x, y, 60, 60);
-            this.speed = 2 + Math.random() * 1;
-            this.code = this.generateCode();
-            this.value = 500;
-        }
-        
-        generateCode() {
-            const snippets = [
-                'function()',
-                'if(score>100)',
-                'for(let i=0)',
-                'const x = 10',
-                'return true',
-                'console.log()',
-                'Math.random()',
-                'new Date()',
-                'Array.map()',
-                'JSON.parse()'
-            ];
-            return snippets[Math.floor(Math.random() * snippets.length)];
-        }
-        
-        drawSpecific() {
-            // Фон
-            ctx.fillStyle = '#4B0082';
-            ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
-            
-            // Бордер
-            ctx.strokeStyle = '#9370DB';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(-this.width/2, -this.height/2, this.width, this.height);
-            
-            // Код
-            ctx.fillStyle = '#32CD32';
-            ctx.font = 'bold 10px "Courier New", monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // Разбиваем длинный код
-            if (this.code.length > 10) {
-                ctx.fillText(this.code.substring(0, 10), 0, -10);
-                ctx.fillText(this.code.substring(10), 0, 5);
-            } else {
-                ctx.fillText(this.code, 0, 0);
-            }
-            
-            // Иконка
-            ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 24px Arial';
-            ctx.fillText('💻', 0, 25);
-        }
-        
-        collect() {
-            if (this.collected) return false;
-            this.collected = true;
-            
-            gameState.score += this.value;
-            createParticles(this.x, this.y, 20, '#32CD32');
-            sounds.levelUp.currentTime = 0;
-            sounds.levelUp.play();
-            showNotification('💻 +' + this.value + ' очков за код!', '#32CD32');
-            
-            return true;
-        }
-    }
-    
-    // ==================== СИСТЕМА ЧАСТИЦ ====================
-    function createParticles(x, y, count, color) {
+    function createParticles(x, y, color, count = 15) {
         for (let i = 0; i < count; i++) {
             particles.push({
                 x: x,
                 y: y,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10,
-                radius: Math.random() * 4 + 2,
+                size: Math.random() * 5 + 3,
+                speedX: Math.random() * 8 - 4,
+                speedY: Math.random() * 8 - 4,
                 color: color,
-                life: 1.0,
-                decay: 0.02 + Math.random() * 0.03
+                life: 40
             });
         }
     }
     
-    function updateParticles(deltaTime) {
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.1;
-            p.life -= p.decay;
-            
-            if (p.life <= 0) {
-                particles.splice(i, 1);
+    function createSnowParticles(count = 100) {
+        for (let i = 0; i < count; i++) {
+            snowParticles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 8 + 4,
+                speedX: Math.random() * 2 - 1,
+                speedY: Math.random() * 3 + 1,
+                life: 100,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: Math.random() * 0.1 - 0.05
+            });
+        }
+    }
+    
+    function activateSnowstorm() {
+        snowstormActive = true;
+        snowstormTimer = 300;
+        
+        createSnowParticles(200);
+        
+        sounds.snowstorm.currentTime = 0;
+        sounds.snowstorm.play().catch(e => console.log('Звук снегопада:', e));
+        
+        const snowNotification = document.getElementById('snowNotification') || document.createElement('div');
+        snowNotification.id = 'snowNotification';
+        snowNotification.textContent = '❄️ СНЕГОПАД! +1 жизнь!';
+        snowNotification.style.cssText = `
+            position: fixed;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 150, 255, 0.2);
+            border: 2px solid #00aaff;
+            color: #00aaff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: block;
+            z-index: 1000;
+            animation: fadeUp 1s forwards;
+            font-family: 'Mountains of Christmas', cursive;
+        `;
+        document.body.appendChild(snowNotification);
+        
+        setTimeout(() => {
+            if (snowNotification.parentNode) {
+                snowNotification.style.animation = 'fadeOut 0.5s forwards';
+                setTimeout(() => snowNotification.remove(), 500);
             }
+        }, 2000);
+        
+        if (gameState.lives < 5) {
+            gameState.lives++;
+            updateHearts();
         }
     }
     
-    function drawParticles() {
-        particles.forEach(p => {
-            ctx.globalAlpha = p.life;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        ctx.globalAlpha = 1.0;
-    }
-    
-    // ==================== СПАВН ОБЪЕКТОВ ====================
-    function spawnObject() {
-        const spawnChance = Math.random();
-        const x = Math.random() * (canvas.width - 60) + 30;
-        
-        if (spawnChance < 0.01 && gameState.level >= 3) {
-            // Кодовый сниппет (редко)
-            fallingObjects.push(new CodeSnippet(x, -40));
-        } else if (spawnChance < 0.05 && gameState.level >= 2) {
-            // Пауэр-ап
-            const types = ['invincible', 'super', 'speed', 'time'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            fallingObjects.push(new PowerUp(x, -40, type));
-        } else if (spawnChance < 0.1) {
-            // Снежинка
-            fallingObjects.push(new Snowflake(x, -40));
-        } else if (spawnChance < 0.4) {
-            // Бак
-            fallingObjects.push(new Bug(x, -40));
-        } else {
-            // Подарок
-            fallingObjects.push(new Gift(x, -40));
-        }
-        
-        gameState.totalObjects++;
-    }
-    
-    // ==================== УРОВНИ И СЛОЖНОСТЬ ====================
+    // ==================== СИСТЕМА СЛОЖНОСТИ ====================
     function updateDifficulty() {
-        if (gameState.level >= 10) {
-            currentDifficulty = DIFFICULTY.HARDCORE;
-        } else if (gameState.level >= 6) {
-            currentDifficulty = DIFFICULTY.HARD;
-        } else if (gameState.level >= 3) {
-            currentDifficulty = DIFFICULTY.MEDIUM;
-        } else {
-            currentDifficulty = DIFFICULTY.EASY;
-        }
+        let newDifficulty = Math.min(Math.floor(gameState.level / 2) + 1, 10);
         
-        document.getElementById('difficultyLevel').textContent = currentDifficulty.name;
+        if (gameState.gifts > 20) newDifficulty = Math.min(newDifficulty + 1, 10);
+        if (gameState.gifts > 50) newDifficulty = Math.min(newDifficulty + 1, 10);
+        
+        if (newDifficulty > gameState.difficulty) {
+            gameState.difficulty = newDifficulty;
+            currentDifficulty = DIFFICULTY[gameState.difficulty];
+            updateDifficultyDisplay();
+        }
     }
     
-    function levelUp() {
-        gameState.level++;
-        updateDifficulty();
-        
-        sounds.levelUp.currentTime = 0;
-        sounds.levelUp.play();
-        
-        showNotification('🎮 Уровень ' + gameState.level + '!', '#FFD700');
-        
-        // Специальные события
-        if (gameState.level === 5) {
-            activateSnowMode(10000);
+    function updateDifficultyDisplay() {
+        const difficulty = currentDifficulty;
+        const difficultyLevel = document.getElementById('difficultyLevel');
+        if (difficultyLevel) {
+            difficultyLevel.textContent = difficulty.name;
+            difficultyLevel.style.color = difficulty.color;
         }
         
-        if (gameState.level === 10) {
-            player.activateSuper(15000);
-            showNotification('🎉 Юбилейный 10 уровень!', '#FF8C00');
+        const pauseDifficulty = document.getElementById('pauseDifficulty');
+        if (pauseDifficulty) {
+            pauseDifficulty.textContent = difficulty.name;
+            pauseDifficulty.style.color = difficulty.color;
         }
         
-        updateHUD();
-        checkAchievements();
-    }
-    
-    function activateSnowMode(duration) {
-        snowMode = true;
-        snowTimer = duration;
-        showNotification('❄️ Снегопад активирован!', '#00aaff');
-        sounds.snow.currentTime = 0;
-        sounds.snow.play();
+        const finalDifficulty = document.getElementById('finalDifficulty');
+        if (finalDifficulty) {
+            finalDifficulty.textContent = difficulty.name;
+            finalDifficulty.style.color = difficulty.color;
+        }
     }
     
     // ==================== ИГРОВАЯ ЛОГИКА ====================
@@ -750,37 +462,35 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const deltaTime = timestamp - lastTime || 0;
         lastTime = timestamp;
-        gameTime += deltaTime;
-        spawnTimer += deltaTime;
-        levelTimer += deltaTime;
+        gameTime += deltaTime / 1000;
         
-        if (snowMode) {
-            snowTimer -= deltaTime;
-            if (snowTimer <= 0) {
-                snowMode = false;
-            }
-        }
-        
-        // Очистка канваса
-        ctx.fillStyle = snowMode ? '#1a3d4a' : '#0a2a1a';
+        // Фон
+        ctx.fillStyle = snowstormActive ? '#1a3d4a' : '#0a2a1a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Снегопад на заднем фоне
-        if (snowMode) {
-            drawSnowfall();
+        // Звёзды
+        ctx.fillStyle = snowstormActive ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.8)';
+        for (let i = 0; i < 50; i++) {
+            const x = (i * 37) % canvas.width;
+            const y = (i * 23) % canvas.height;
+            ctx.beginPath();
+            ctx.arc(x, y, 1, 0, Math.PI * 2);
+            ctx.fill();
         }
         
-        // Обновление и отрисовка игрока
-        player.update(deltaTime);
+        player.update();
         player.draw();
         
+        updateDifficulty();
+        
         // Спавн объектов
-        const spawnInterval = Math.max(200, 1000 - gameState.level * 50);
-        if (spawnTimer > spawnInterval / currentDifficulty.spawnRate) {
-            spawnObject();
-            if (snowMode && Math.random() < 0.3) {
-                spawnObject(); // Больше объектов в снегопад
-            }
+        spawnTimer += deltaTime;
+        const difficulty = currentDifficulty;
+        
+        if (spawnTimer > 800) {
+            if (Math.random() < difficulty.giftSpawnRate) createGift();
+            if (Math.random() < difficulty.bugSpawnRate) createBug();
+            if (Math.random() < difficulty.snowflakeChance) createSnowflake();
             spawnTimer = 0;
         }
         
@@ -788,113 +498,223 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = fallingObjects.length - 1; i >= 0; i--) {
             const obj = fallingObjects[i];
             
-            if (obj.update(deltaTime)) {
+            if (obj.update()) {
                 fallingObjects.splice(i, 1);
                 continue;
             }
             
             obj.draw();
             
-            if (!obj.collected && obj.checkCollision()) {
-                if (obj.collect()) {
+            if (!obj.collected) {
+                const dx = player.x - obj.x;
+                const dy = player.y - obj.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const collisionDistance = player.width/2 + obj.width/2;
+                
+                if (distance < collisionDistance) {
+                    obj.collected = true;
+                    
+                    if (obj.type === 'gift') {
+                        gameState.score += 100;
+                        gameState.gifts++;
+                        sounds.collect.currentTime = 0;
+                        sounds.collect.play().catch(e => console.log('Звук сбора:', e));
+                        createParticles(obj.x, obj.y, obj.color, 20);
+                        
+                        updateLevelProgress();
+                        
+                        if (gameState.gifts % 5 === 0) {
+                            gameState.level++;
+                            sounds.victory.currentTime = 0;
+                            sounds.victory.play().catch(e => console.log('Звук победы:', e));
+                            showNotification(`🎮 Уровень ${gameState.level}!`, '#FFD700');
+                        }
+                    } else if (obj.type === 'bug') {
+                        if (player.takeDamage()) {
+                            gameState.lives--;
+                            createParticles(obj.x, obj.y, obj.color, 25);
+                            updateHearts();
+                            
+                            if (gameState.lives <= 0) {
+                                setTimeout(gameOver, 500);
+                                return;
+                            }
+                        }
+                        gameState.bugsDestroyed++;
+                    } else if (obj.type === 'snowflake') {
+                        activateSnowstorm();
+                        sounds.collect.currentTime = 0;
+                        sounds.collect.play();
+                        createParticles(obj.x, obj.y, '#00aaff', 30);
+                    }
+                    
                     fallingObjects.splice(i, 1);
+                    updateHUD();
                 }
             }
         }
         
         // Частицы
-        updateParticles(deltaTime);
-        drawParticles();
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.speedX;
+            p.y += p.speedY;
+            p.life--;
+            
+            if (p.life <= 0) {
+                particles.splice(i, 1);
+                continue;
+            }
+            
+            ctx.globalAlpha = p.life / 40;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Снегопад
+        if (snowstormActive) {
+            snowstormTimer--;
+            
+            for (let i = snowParticles.length - 1; i >= 0; i--) {
+                const s = snowParticles[i];
+                s.x += s.speedX;
+                s.y += s.speedY;
+                s.rotation += s.rotationSpeed;
+                
+                if (s.y > canvas.height) {
+                    s.y = -10;
+                    s.x = Math.random() * canvas.width;
+                }
+                
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                ctx.rotate(s.rotation);
+                ctx.globalAlpha = 0.8;
+                ctx.fillStyle = '#ffffff';
+                
+                for (let j = 0; j < 6; j++) {
+                    ctx.rotate(Math.PI / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(s.size/2, 0);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+            
+            if (Math.random() < 0.3) {
+                snowParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: -10,
+                    size: Math.random() * 6 + 3,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 2 + 1,
+                    life: 100,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: Math.random() * 0.1 - 0.05
+                });
+            }
+            
+            if (snowstormTimer <= 0) {
+                snowstormActive = false;
+                sounds.snowstorm.pause();
+                sounds.snowstorm.currentTime = 0;
+            }
+        }
+        
+        ctx.globalAlpha = 1;
         
         // Пол
-        drawFloor();
+        const gradient = ctx.createLinearGradient(0, canvas.height - 50, 0, canvas.height);
+        gradient.addColorStop(0, snowstormActive ? '#3a5a6a' : '#2a4a3a');
+        gradient.addColorStop(1, snowstormActive ? '#2a4a5a' : '#1a3a2a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
         
-        // Обновление интерфейса
-        if (levelTimer > 1000) {
-            updateGameTimer();
-            levelTimer = 0;
-        }
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(0, canvas.height - 50, canvas.width, 3);
         
-        // Проверка условий победы
-        if (gameState.gameMode === GAME_MODES.CLASSIC && gameState.gifts >= 50) {
-            victory();
-            return;
-        }
-        
-        if (gameState.gameMode === GAME_MODES.TIME && gameTime >= 60000) {
-            gameOver();
-            return;
-        }
+        // Таймер
+        updateGameTimer();
         
         gameLoopId = requestAnimationFrame(updateGame);
     }
     
-    function drawSnowfall() {
-        for (let i = 0; i < 30; i++) {
-            const x = (Date.now() / 50 + i * 100) % canvas.width;
-            const y = (Date.now() / 30 + i * 50) % canvas.height;
-            const size = Math.random() * 4 + 2;
-            
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-    
-    function drawFloor() {
-        const gradient = ctx.createLinearGradient(0, canvas.height - 50, 0, canvas.height);
-        gradient.addColorStop(0, '#2a4a3a');
-        gradient.addColorStop(1, '#1a3a2a');
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-        
-        // Узор на полу
-        ctx.strokeStyle = '#32CD32';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < canvas.width; i += 40) {
-            ctx.beginPath();
-            ctx.moveTo(i, canvas.height - 50);
-            ctx.lineTo(i + 20, canvas.height - 30);
-            ctx.stroke();
-        }
-    }
-    
     // ==================== ИНТЕРФЕЙС ====================
     function updateHUD() {
-        document.getElementById('scoreValue').textContent = String(gameState.score).padStart(6, '0');
-        document.getElementById('giftsCount').textContent = gameState.gifts;
-        document.getElementById('gameLevel').textContent = gameState.level;
+        const scoreValue = document.getElementById('scoreValue');
+        const giftsCount = document.getElementById('giftsCount');
+        const gameLevel = document.getElementById('gameLevel');
         
+        if (scoreValue) scoreValue.textContent = String(gameState.score).padStart(6, '0');
+        if (giftsCount) giftsCount.textContent = `${gameState.gifts}`;
+        if (gameLevel) gameLevel.textContent = gameState.level;
+        
+        updateProgress();
+    }
+    
+    function updateHearts() {
         const heartsContainer = document.getElementById('heartsContainer');
-        heartsContainer.innerHTML = '';
-        for (let i = 0; i < 5; i++) {
-            const heart = document.createElement('i');
-            heart.className = `fas fa-heart ${i >= gameState.lives ? 'lost' : ''}`;
-            heartsContainer.appendChild(heart);
+        if (!heartsContainer) return;
+        
+        let heartsHTML = '';
+        const maxLives = 5;
+        for (let i = 0; i < maxLives; i++) {
+            heartsHTML += `<i class="fas fa-heart ${i >= gameState.lives ? 'lost' : ''}"></i>`;
         }
+        heartsContainer.innerHTML = heartsHTML;
+    }
+    
+    function updateLevelProgress() {
+        const progressText = document.getElementById('progressText');
+        const levelProgressFill = document.getElementById('levelProgressFill');
+        if (!progressText || !levelProgressFill) return;
         
-        // Прогресс уровня
-        const progress = Math.min(100, (gameState.gifts % 5) * 20);
-        document.getElementById('levelProgressFill').style.width = progress + '%';
-        document.getElementById('progressText').textContent = `${gameState.gifts % 5}/5 подарков`;
+        const giftsForNextLevel = 5;
+        const progress = (gameState.gifts % giftsForNextLevel) / giftsForNextLevel * 100;
         
-        // Сложность
-        document.getElementById('difficultyLevel').textContent = currentDifficulty.name;
+        progressText.textContent = `${gameState.gifts % giftsForNextLevel}/${giftsForNextLevel} подарков`;
+        levelProgressFill.style.width = `${progress}%`;
     }
     
     function updateGameTimer() {
         if (gameState.gameMode === GAME_MODES.TIME) {
-            const timeLeft = Math.max(0, 60000 - gameTime);
+            const timeLeft = Math.max(0, 60000 - gameTime * 1000);
             const seconds = Math.ceil(timeLeft / 1000);
             document.getElementById('timeValue').textContent = seconds;
         } else {
-            const seconds = Math.floor(gameTime / 1000);
+            const seconds = Math.floor(gameTime);
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
             document.getElementById('timeValue').textContent = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
+    }
+    
+    function updateProgress() {
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const seasonMessage = document.getElementById('seasonMessage');
+        if (!progressFill || !progressPercent || !seasonMessage) return;
+        
+        const maxScore = 10000;
+        const progress = Math.min((gameState.score / maxScore) * 100, 100);
+        
+        progressFill.style.width = `${progress}%`;
+        progressPercent.textContent = `${progress.toFixed(1)}%`;
+        
+        const messages = [
+            "🎄 Начинаем новогоднее кодирование!",
+            "🎁 Собрано несколько подарков!",
+            "⭐ Половина пути пройдена!",
+            "🏆 Почти у цели!",
+            "🎉 С Новым Годом! Ты чемпион!"
+        ];
+        const msgIndex = Math.floor(progress / 20);
+        seasonMessage.textContent = messages[Math.min(msgIndex, messages.length - 1)];
     }
     
     function showNotification(message, color) {
@@ -924,6 +744,151 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1500);
     }
     
+    // ==================== МОБИЛЬНОЕ УПРАВЛЕНИЕ (КАК В deepseek_javascript_20251231_c786ac.js) ====================
+    function createMobileControls() {
+        if (document.getElementById('mobileCompactControls')) return;
+        
+        const controlsContainer = document.createElement('div');
+        controlsContainer.id = 'mobileCompactControls';
+        controlsContainer.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        `;
+        
+        // Кнопка влево
+        const leftBtn = document.createElement('button');
+        leftBtn.innerHTML = '←';
+        leftBtn.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #228B22, #32CD32);
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        leftBtn.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            player.moveLeft();
+            leftBtn.style.transform = 'scale(0.9)';
+        });
+        leftBtn.addEventListener('touchend', (e) => { 
+            e.preventDefault(); 
+            player.stop();
+            leftBtn.style.transform = 'scale(1)';
+        });
+        leftBtn.addEventListener('touchcancel', (e) => { 
+            e.preventDefault(); 
+            player.stop();
+            leftBtn.style.transform = 'scale(1)';
+        });
+        
+        // Кнопка прыжка
+        const jumpBtn = document.createElement('button');
+        jumpBtn.innerHTML = '↑';
+        jumpBtn.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #1E90FF, #00BFFF);
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        jumpBtn.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            player.jump();
+            jumpBtn.style.transform = 'scale(0.9)';
+        });
+        jumpBtn.addEventListener('touchend', (e) => { 
+            e.preventDefault();
+            jumpBtn.style.transform = 'scale(1)';
+        });
+        
+        // Кнопка вправо
+        const rightBtn = document.createElement('button');
+        rightBtn.innerHTML = '→';
+        rightBtn.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #228B22, #32CD32);
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        rightBtn.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            player.moveRight();
+            rightBtn.style.transform = 'scale(0.9)';
+        });
+        rightBtn.addEventListener('touchend', (e) => { 
+            e.preventDefault(); 
+            player.stop();
+            rightBtn.style.transform = 'scale(1)';
+        });
+        rightBtn.addEventListener('touchcancel', (e) => { 
+            e.preventDefault(); 
+            player.stop();
+            rightBtn.style.transform = 'scale(1)';
+        });
+        
+        // Кнопка супер-прыжка
+        const superBtn = document.createElement('button');
+        superBtn.innerHTML = '⚡';
+        superBtn.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: 2px solid #FF8C00;
+            color: #B22222;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        superBtn.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            player.superJump();
+            superBtn.style.transform = 'scale(0.9)';
+        });
+        superBtn.addEventListener('touchend', (e) => { 
+            e.preventDefault();
+            superBtn.style.transform = 'scale(1)';
+        });
+        
+        controlsContainer.appendChild(leftBtn);
+        controlsContainer.appendChild(jumpBtn);
+        controlsContainer.appendChild(rightBtn);
+        controlsContainer.appendChild(superBtn);
+        document.body.appendChild(controlsContainer);
+        
+        console.log('📱 Мобильное управление создано');
+    }
+    
+    function removeMobileControls() {
+        const controls = document.getElementById('mobileCompactControls');
+        if (controls) {
+            controls.remove();
+            console.log('📱 Мобильное управление удалено');
+        }
+    }
+    
     // ==================== УПРАВЛЕНИЕ ИГРОЙ ====================
     function startGame(mode) {
         console.log('🚀 Запуск игры в режиме:', mode);
@@ -933,44 +898,54 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.lives = 3;
         gameState.gifts = 0;
         gameState.level = 1;
+        gameState.difficulty = 1;
+        gameState.bugsDestroyed = 0;
         gameState.gameMode = mode;
-        gameState.bugsKilled = 0;
-        gameState.totalObjects = 0;
-        gameState.accuracy = 100;
         gameTime = 0;
-        levelTimer = 0;
-        snowMode = false;
         
         fallingObjects.length = 0;
         particles.length = 0;
-        powerUps.length = 0;
+        snowParticles.length = 0;
+        snowstormActive = false;
+        sounds.snowstorm.pause();
+        sounds.snowstorm.currentTime = 0;
         
         // Сброс игрока
         player.x = canvas.width / 2;
         player.y = canvas.height - 100;
         player.speedY = 0;
         player.canJump = true;
+        player.isInvincible = false;
+        player.isHurt = false;
         player.isMovingLeft = false;
         player.isMovingRight = false;
-        player.isInvincible = false;
-        player.isSuper = false;
-        player.color = '#00ffff';
-        player.speed = 7;
         
         // Настройка интерфейса
-        document.getElementById('gameMode').textContent = getModeName(mode);
+        const modeNames = {
+            'classic': 'КЛАССИКА',
+            'time': 'НА ВРЕМЯ',
+            'code': 'КОД-БАТТЛ',
+            'survival': 'ВЫЖИВАНИЕ'
+        };
+        const gameModeText = document.getElementById('gameMode');
+        if (gameModeText) gameModeText.textContent = modeNames[mode] || 'КЛАССИКА';
+        
         updateDifficulty();
         updateHUD();
+        updateHearts();
+        updateLevelProgress();
         
         // Музыка
-        if (sounds.bgMusic.paused) {
-            sounds.bgMusic.currentTime = 0;
-            sounds.bgMusic.play().catch(e => console.log('Автовоспроизведение заблокировано'));
-        }
+        sounds.bgMusic.currentTime = 0;
+        sounds.bgMusic.play().catch(e => console.log('Фоновая музыка:', e));
         
         // Переключение экранов
         hideAllScreens();
         document.getElementById('gameScreen').classList.add('active');
+        
+        // Прогресс-бар уровня
+        const levelProgress = document.getElementById('levelProgress');
+        if (levelProgress) levelProgress.style.display = 'block';
         
         // Запуск игры
         gameRunning = true;
@@ -983,8 +958,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Мобильное управление
         if (window.innerWidth <= 768 || 'ontouchstart' in window) {
-            const controls = document.querySelector('.game-controls');
-            if (controls) controls.style.display = 'flex';
+            createMobileControls();
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = 'flex';
         }
         
         // Статистика
@@ -992,108 +968,91 @@ document.addEventListener('DOMContentLoaded', function() {
         saveGameState();
     }
     
-    function getModeName(mode) {
-        const names = {
-            'classic': 'КЛАССИКА',
-            'time': 'НА ВРЕМЯ',
-            'code': 'КОД-БАТТЛ',
-            'survival': 'ВЫЖИВАНИЕ'
-        };
-        return names[mode] || mode.toUpperCase();
-    }
-    
     function pauseGame() {
         gamePaused = !gamePaused;
-        sounds.click.play();
+        sounds.click.play().catch(e => console.log('Звук клика:', e));
         
         if (gamePaused) {
-            document.getElementById('pauseGifts').textContent = gameState.gifts;
-            document.getElementById('pauseBugs').textContent = gameState.bugsKilled;
-            document.getElementById('pauseTime').textContent = document.getElementById('timeValue').textContent;
-            document.getElementById('pauseDifficulty').textContent = currentDifficulty.name;
+            // Обновляем статистику в паузе
+            const pauseGifts = document.getElementById('pauseGifts');
+            const pauseBugs = document.getElementById('pauseBugs');
+            const pauseTime = document.getElementById('pauseTime');
+            const pauseAccuracy = document.getElementById('pauseAccuracy');
             
-            const accuracy = gameState.totalObjects > 0 
-                ? Math.round((gameState.gifts / gameState.totalObjects) * 100)
-                : 100;
-            document.getElementById('pauseAccuracy').textContent = accuracy + '%';
+            if (pauseGifts) pauseGifts.textContent = gameState.gifts;
+            if (pauseBugs) pauseBugs.textContent = gameState.bugsDestroyed;
+            if (pauseTime) pauseTime.textContent = formatTime(gameTime);
             
-            // Случайная подсказка
-            const tips = [
-                'Используй супер-прыжок для сбора высоких предметов!',
-                'Снежинки восстанавливают жизни!',
-                'На 5 уровне начинается снегопад!',
-                'Кодовые сниппеты дают много очков!',
-                'Избегай красных багов!',
-                'Собирай пауэр-апы для особых способностей!',
-                'На 10 уровне ты станешь неуязвимым на 15 секунд!'
-            ];
-            document.getElementById('pauseTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+            const totalObjects = gameState.gifts + gameState.bugsDestroyed;
+            const accuracy = totalObjects > 0 ? Math.round((gameState.gifts / totalObjects) * 100) : 100;
+            if (pauseAccuracy) pauseAccuracy.textContent = `${accuracy}%`;
             
             document.getElementById('pauseScreen').classList.add('active');
+            sounds.bgMusic.pause();
+            if (snowstormActive) sounds.snowstorm.pause();
         } else {
             document.getElementById('pauseScreen').classList.remove('active');
             if (gameRunning) {
                 lastTime = performance.now();
                 gameLoopId = requestAnimationFrame(updateGame);
+                sounds.bgMusic.play();
+                if (snowstormActive) sounds.snowstorm.play();
             }
         }
     }
     
-    function victory() {
-        gameRunning = false;
-        if (gameLoopId) cancelAnimationFrame(gameLoopId);
-        
-        sounds.victory.currentTime = 0;
-        sounds.victory.play();
-        
-        // Награда за победу
-        gameState.score += 5000;
-        unlockAchievement('ПОБЕДА', '🎮 Пройди игру в классическом режиме');
-        
-        showGameOverScreen(true);
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
     
     function gameOver() {
         gameRunning = false;
         if (gameLoopId) cancelAnimationFrame(gameLoopId);
         
+        sounds.bgMusic.pause();
+        sounds.bgMusic.currentTime = 0;
+        sounds.snowstorm.pause();
+        sounds.snowstorm.currentTime = 0;
+        
         // Сохранение рекордов
         if (gameState.score > gameState.highScore) {
             gameState.highScore = gameState.score;
-            unlockAchievement('РЕКОРД', '🏆 Установи новый рекорд очков');
+            localStorage.setItem('dipsikHighScore', gameState.highScore);
         }
         
-        if (gameState.gameMode === GAME_MODES.TIME) {
-            const timeScore = Math.floor(gameTime / 1000);
-            if (timeScore > gameState.bestTime) {
-                gameState.bestTime = timeScore;
-                localStorage.setItem('dipsikBestTime', gameState.bestTime);
-            }
-        }
-        
+        gameState.linesCollected += gameState.gifts;
         saveGameState();
-        showGameOverScreen(false);
+        
+        showGameOverScreen(gameState.lives <= 0);
     }
     
-    function showGameOverScreen(isVictory) {
-        document.getElementById('gameOverTitle').textContent = isVictory ? 'ПОБЕДА! 🏆' : 'ИГРА ОКОНЧЕНА 💀';
+    function showGameOverScreen(isDefeat) {
         document.getElementById('finalScore').textContent = gameState.score;
         document.getElementById('finalLevel').textContent = gameState.level;
         document.getElementById('finalGifts').textContent = gameState.gifts;
         document.getElementById('finalLives').textContent = gameState.lives;
-        document.getElementById('finalDifficulty').textContent = currentDifficulty.name;
         
-        const icon = document.getElementById('resultIcon');
-        icon.innerHTML = isVictory ? 
-            '<i class="fas fa-trophy" style="font-size: 4rem; color: #FFD700;"></i>' :
-            '<i class="fas fa-skull-crossbones" style="font-size: 4rem; color: #B22222;"></i>';
+        if (isDefeat) {
+            document.getElementById('gameOverTitle').textContent = 'ИГРА ОКОНЧЕНА! 💀';
+            document.getElementById('resultIcon').innerHTML = '<i class="fas fa-skull-crossbones" style="font-size: 4rem; color: #B22222;"></i>';
+            sounds.hurt.currentTime = 0;
+            sounds.hurt.play().catch(e => console.log('Звук поражения:', e));
+        } else {
+            document.getElementById('gameOverTitle').textContent = 'ПОБЕДА! 🏆';
+            document.getElementById('resultIcon').innerHTML = '<i class="fas fa-trophy" style="font-size: 4rem; color: #FFD700;"></i>';
+            sounds.victory.currentTime = 0;
+            sounds.victory.play().catch(e => console.log('Звук победы:', e));
+        }
         
         hideAllScreens();
         document.getElementById('gameOverScreen').classList.add('active');
         
         // Скрываем мобильное управление
-        const controls = document.querySelector('.game-controls');
-        if (controls) controls.style.display = 'none';
+        removeMobileControls();
+        const gameControls = document.querySelector('.game-controls');
+        if (gameControls) gameControls.style.display = 'none';
     }
     
     function hideAllScreens() {
@@ -1102,44 +1061,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ==================== ДОСТИЖЕНИЯ ====================
-    function checkAchievements() {
-        if (gameState.gifts >= 10) {
-            unlockAchievement('НОВИЧОК', '🎁 Собери 10 подарков');
-        }
-        if (gameState.gifts >= 50) {
-            unlockAchievement('КОЛЛЕКЦИОНЕР', '📦 Собери 50 подарков');
-        }
-        if (gameState.level >= 5) {
-            unlockAchievement('ЭКСПЕРТ', '⭐ Достигни 5 уровня');
-        }
-        if (gameState.level >= 10) {
-            unlockAchievement('МАСТЕР', '👑 Достигни 10 уровня');
-        }
-        if (gameState.score >= 10000) {
-            unlockAchievement('БОГАТЫЙ', '💰 Заработай 10,000 очков');
-        }
-        if (snowMode) {
-            unlockAchievement('СНЕГОВИК', '❄️ Активируй снегопад');
-        }
-    }
-    
-    function unlockAchievement(name, description) {
-        const achievement = { name, description, date: new Date().toLocaleDateString() };
-        
-        if (!gameState.achievements.some(a => a.name === name)) {
-            gameState.achievements.push(achievement);
-            showNotification('🏆 Достижение: ' + name, '#FFD700');
-            saveGameState();
-        }
-    }
-    
-    // ==================== СОХРАНЕНИЕ ====================
     function saveGameState() {
         localStorage.setItem('dipsikHighScore', gameState.highScore);
         localStorage.setItem('dipsikTotalGames', gameState.totalGames);
         localStorage.setItem('dipsikLinesCollected', gameState.linesCollected);
-        localStorage.setItem('dipsikAchievements', JSON.stringify(gameState.achievements));
         
         // Обновляем меню
         document.getElementById('bestScore').textContent = gameState.highScore;
@@ -1147,127 +1072,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('linesCollected').textContent = gameState.linesCollected;
         
         // Прогресс сезона
-        const progress = Math.min(100, Math.floor((gameState.totalGames / 10) * 100));
-        document.getElementById('progressPercent').textContent = progress + '%';
-        document.getElementById('progressFill').style.width = progress + '%';
-        
-        const messages = [
-            'Начинаем новогоднее кодирование! 🎄',
-            'Уже неплохо! 🎁',
-            'Половина пути пройдена! ⭐',
-            'Почти всё собрано! 🎮',
-            'Сезон завершён! 🏆'
-        ];
-        const messageIndex = Math.min(4, Math.floor(progress / 25));
-        document.getElementById('seasonMessage').textContent = messages[messageIndex];
-    }
-    
-    // ==================== ЧИТ-КОДЫ ====================
-    function activateCheat(code) {
-        const cheats = {
-            'DIPSIK2024': () => { gameState.score += 10000; showNotification('🎅 +10000 очков!', '#FFD700'); },
-            'SNOWMAGIC': () => { activateSnowMode(30000); },
-            'INVINCIBLE': () => { player.isInvincible = true; player.invincibleTimer = 30000; showNotification('🛡️ Бессмертие!', '#FFFF00'); },
-            'SUPERJUMP': () => { player.activateSuper(30000); showNotification('⚡ Супер-сила!', '#FFD700'); },
-            'MORELIVES': () => { gameState.lives = 5; updateHUD(); showNotification('💖 +5 жизней!', '#FF69B4'); },
-            'LEVELUP': () => { levelUp(); },
-            'GODMODE': () => { 
-                player.isInvincible = true; 
-                player.activateSuper(60000);
-                gameState.lives = 5;
-                updateHUD();
-                showNotification('👑 РЕЖИМ БОГА!', '#FF0000');
-            }
-        };
-        
-        if (cheats[code]) {
-            cheats[code]();
-            cheatsActive[code] = true;
-            sounds.victory.play();
-            return true;
-        }
-        
-        return false;
-    }
-    
-    // ==================== МОБИЛЬНОЕ УПРАВЛЕНИЕ ====================
-    function setupMobileControls() {
-        const leftBtn = document.getElementById('moveLeftBtn');
-        const rightBtn = document.getElementById('moveRightBtn');
-        const upBtn = document.getElementById('moveUpBtn');
-        const actionBtn = document.getElementById('actionBtn');
-        const specialBtn = document.getElementById('specialBtn');
-        
-        // Касания
-        const addTouchControl = (button, action, endAction) => {
-            button.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (action) action();
-                button.classList.add('active');
-            });
-            
-            button.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                if (endAction) endAction();
-                button.classList.remove('active');
-            });
-            
-            button.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                if (endAction) endAction();
-                button.classList.remove('active');
-            });
-        };
-        
-        addTouchControl(leftBtn, () => player.moveLeft(), () => player.stop());
-        addTouchControl(rightBtn, () => player.moveRight(), () => player.stop());
-        addTouchControl(upBtn, () => player.jump());
-        addTouchControl(actionBtn, () => player.superJump());
-        addTouchControl(specialBtn, () => {
-            // Дебаг-режим: удаляет всех багов
-            for (let i = fallingObjects.length - 1; i >= 0; i--) {
-                if (fallingObjects[i].type === 'bug') {
-                    fallingObjects.splice(i, 1);
-                    gameState.bugsKilled++;
-                    createParticles(player.x, player.y, 10, '#FF0000');
-                }
-            }
-            showNotification('🐛 Дебаг активирован!', '#32CD32');
-        });
-        
-        // Мышь (для десктопов с сенсорными экранами)
-        const addMouseControl = (button, action, endAction) => {
-            button.addEventListener('mousedown', (e) => {
-                if (!('ontouchstart' in window)) return;
-                e.preventDefault();
-                if (action) action();
-                button.classList.add('active');
-            });
-            
-            button.addEventListener('mouseup', (e) => {
-                if (!('ontouchstart' in window)) return;
-                e.preventDefault();
-                if (endAction) endAction();
-                button.classList.remove('active');
-            });
-            
-            button.addEventListener('mouseleave', (e) => {
-                if (!('ontouchstart' in window)) return;
-                if (endAction) endAction();
-                button.classList.remove('active');
-            });
-        };
-        
-        addMouseControl(leftBtn, () => player.moveLeft(), () => player.stop());
-        addMouseControl(rightBtn, () => player.moveRight(), () => player.stop());
-        addMouseControl(upBtn, () => player.jump());
-        addMouseControl(actionBtn, () => player.superJump());
-        
-        // Показываем управление на мобильных
-        if (window.innerWidth <= 768 || 'ontouchstart' in window) {
-            const controls = document.querySelector('.game-controls');
-            if (controls) controls.style.display = 'flex';
-        }
+        updateProgress();
     }
     
     // ==================== ИНИЦИАЛИЗАЦИЯ ====================
@@ -1292,21 +1097,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ==================== КНОПКИ МЕНЮ ====================
         document.getElementById('startGameBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             hideAllScreens();
             document.getElementById('modeScreen').classList.add('active');
         });
         
         document.querySelectorAll('.mode-card').forEach(card => {
             card.addEventListener('click', function() {
-                sounds.click.play();
+                sounds.click.play().catch(e => console.log('Звук клика:', e));
                 const mode = this.getAttribute('data-mode');
                 startGame(mode);
             });
         });
         
         document.getElementById('backToMenuBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
         });
@@ -1315,51 +1120,53 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gamePauseBtn').addEventListener('click', pauseGame);
         
         document.getElementById('resumeBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             gamePaused = false;
             document.getElementById('pauseScreen').classList.remove('active');
             if (gameRunning) {
                 lastTime = performance.now();
                 gameLoopId = requestAnimationFrame(updateGame);
+                sounds.bgMusic.play();
+                if (snowstormActive) sounds.snowstorm.play();
             }
         });
         
         document.getElementById('restartBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             startGame(gameState.gameMode || GAME_MODES.CLASSIC);
         });
         
         document.getElementById('quitBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             gameRunning = false;
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            sounds.bgMusic.pause();
+            sounds.bgMusic.currentTime = 0;
+            sounds.snowstorm.pause();
+            sounds.snowstorm.currentTime = 0;
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
-            sounds.bgMusic.pause();
-            
-            const controls = document.querySelector('.game-controls');
-            if (controls) controls.style.display = 'none';
+            removeMobileControls();
         });
         
         document.getElementById('saveBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             saveGameState();
             showNotification('💾 Игра сохранена!', '#32CD32');
         });
         
         document.getElementById('playAgainBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             startGame(gameState.gameMode || GAME_MODES.CLASSIC);
         });
         
         document.getElementById('menuBtn').addEventListener('click', function() {
-            sounds.click.play();
+            sounds.click.play().catch(e => console.log('Звук клика:', e));
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
             sounds.bgMusic.pause();
-            
-            const controls = document.querySelector('.game-controls');
-            if (controls) controls.style.display = 'none';
+            sounds.bgMusic.currentTime = 0;
+            removeMobileControls();
         });
         
         // ==================== КЛАВИАТУРА ====================
@@ -1392,12 +1199,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     pauseGame();
                     break;
                     
-                case '1':
-                    activateCheat('DIPSIK2024');
-                    break;
-                    
-                case '2':
-                    activateCheat('SNOWMAGIC');
+                case 'e':
+                    // Удалить все баги (чит)
+                    let destroyed = 0;
+                    for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                        if (fallingObjects[i].type === 'bug') {
+                            createParticles(fallingObjects[i].x, fallingObjects[i].y, fallingObjects[i].color, 15);
+                            fallingObjects.splice(i, 1);
+                            destroyed++;
+                            gameState.bugsDestroyed++;
+                        }
+                    }
+                    if (destroyed > 0) {
+                        sounds.collect.currentTime = 0;
+                        sounds.collect.play();
+                        showNotification(`🐛 Удалено ${destroyed} багов!`, '#32CD32');
+                    }
                     break;
             }
         });
@@ -1415,12 +1232,110 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // ==================== МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ====================
+        const moveLeftBtn = document.getElementById('moveLeftBtn');
+        const moveRightBtn = document.getElementById('moveRightBtn');
+        const moveUpBtn = document.getElementById('moveUpBtn');
+        const actionBtn = document.getElementById('actionBtn');
+        const specialBtn = document.getElementById('specialBtn');
+        
+        if (moveLeftBtn) {
+            moveLeftBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                player.moveLeft();
+                this.classList.add('active');
+            });
+            
+            moveLeftBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                player.stop();
+                this.classList.remove('active');
+            });
+        }
+        
+        if (moveRightBtn) {
+            moveRightBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                player.moveRight();
+                this.classList.add('active');
+            });
+            
+            moveRightBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                player.stop();
+                this.classList.remove('active');
+            });
+        }
+        
+        if (moveUpBtn) {
+            moveUpBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                player.jump();
+                this.classList.add('active');
+            });
+            
+            moveUpBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.classList.remove('active');
+            });
+        }
+        
+        if (actionBtn) {
+            actionBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                player.superJump();
+                this.classList.add('active');
+            });
+            
+            actionBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.classList.remove('active');
+            });
+        }
+        
+        if (specialBtn) {
+            specialBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Удалить все баги
+                let destroyed = 0;
+                for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                    if (fallingObjects[i].type === 'bug') {
+                        createParticles(fallingObjects[i].x, fallingObjects[i].y, fallingObjects[i].color, 15);
+                        fallingObjects.splice(i, 1);
+                        destroyed++;
+                        gameState.bugsDestroyed++;
+                    }
+                }
+                if (destroyed > 0) {
+                    sounds.collect.currentTime = 0;
+                    sounds.collect.play();
+                    showNotification(`🐛 Удалено ${destroyed} багов!`, '#32CD32');
+                }
+                this.classList.add('active');
+            });
+            
+            specialBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.classList.remove('active');
+            });
+        }
+        
         // ==================== ЧИТ-КОДЫ ====================
         document.getElementById('cheatBtn').addEventListener('click', function() {
             const code = document.getElementById('cheatInput').value.toUpperCase();
-            if (activateCheat(code)) {
+            const cheats = {
+                'DIPSIK2024': () => { gameState.score += 10000; updateHUD(); showNotification('🎅 +10000 очков!', '#FFD700'); },
+                'SNOWMAGIC': () => { activateSnowstorm(); },
+                'INVINCIBLE': () => { player.isInvincible = true; setTimeout(() => player.isInvincible = false, 10000); showNotification('🛡️ Бессмертие на 10 сек!', '#FFFF00'); },
+                'GIFTS': () => { for (let i = 0; i < 10; i++) createGift(); showNotification('🎁 +10 подарков!', '#32CD32'); },
+                'HEAL': () => { gameState.lives = 5; updateHearts(); showNotification('💖 +5 жизней!', '#FF69B4'); },
+                'LEVELUP': () => { gameState.level++; updateDifficultyDisplay(); updateHUD(); showNotification('⭐ Уровень повышен!', '#FFD700'); }
+            };
+            
+            if (cheats[code]) {
+                cheats[code]();
                 document.getElementById('cheatInput').value = '';
-                sounds.collect.play();
+                sounds.victory.play();
             } else {
                 showNotification('❌ Неверный чит-код!', '#B22222');
                 sounds.hurt.play();
@@ -1441,28 +1356,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                      '← → / A/D - движение<br>' +
                                      'SPACE / ↑ / W - прыжок<br>' +
                                      'S - супер-прыжок<br>' +
+                                     'E - удалить все баги<br>' +
                                      'ESC - пауза<br><br>' +
                                      '<b>Объекты:</b><br>' +
                                      '🎁 Подарки: +100 очков<br>' +
                                      '🐛 Баги: -1 жизнь<br>' +
-                                     '❄️ Снежинки: +1 жизнь<br>' +
-                                     '💻 Код: +500 очков<br>' +
-                                     '⚡ Пауэр-апы: особые способности<br><br>' +
-                                     '<b>Уровни:</b><br>' +
+                                     '❄️ Снежинки: снегопад!<br><br>' +
+                                     '<b>Система уровней:</b><br>' +
                                      'Каждые 5 подарков = новый уровень<br>' +
-                                     'Выше уровень = выше сложность';
+                                     '10 уровней сложности';
             document.getElementById('easterEgg').style.display = 'block';
         });
         
         document.getElementById('settingsBtn').addEventListener('click', function() {
             sounds.click.play();
             document.getElementById('easterMessage').innerHTML = '⚙️ <b>НАСТРОЙКИ</b><br><br>' +
-                                     'Звук: ВКЛ (громкость 30%)<br>' +
+                                     'Звук: ВКЛ (громкость 50%)<br>' +
                                      'Музыка: ВКЛ (новогодняя)<br>' +
                                      'Сложность: АВТО (растёт с уровнем)<br>' +
                                      'Управление: КЛАВИАТУРА + ТАЧСКРИН<br>' +
                                      'Графика: ВЫСОКАЯ (частицы + анимации)<br><br>' +
-                                     '<b>Чит-коды:</b> DIPSIK2024, SNOWMAGIC<br>INVINCIBLE, SUPERJUMP, GODMODE';
+                                     '<b>Чит-коды:</b><br>DIPSIK2024, SNOWMAGIC<br>INVINCIBLE, GIFTS, HEAL, LEVELUP';
             document.getElementById('easterEgg').style.display = 'block';
         });
         
@@ -1471,8 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('easterMessage').innerHTML = '👨‍💻 <b>АВТОРЫ И БЛАГОДАРНОСТИ</b><br><br>' +
                                      '<b>Главный герой:</b> DIPSIK<br>' +
                                      '<b>Дизайн и программирование:</b> AI Assistant<br>' +
-                                     '<b>Музыка:</b> Mixkit.co<br>' +
-                                     '<b>Звуки:</b> Mixkit.co<br>' +
+                                     '<b>Музыка и звуки:</b> Mixkit.co<br>' +
                                      '<b>Шрифты:</b> Google Fonts<br>' +
                                      '<b>Иконки:</b> Font Awesome<br><br>' +
                                      '🎄 С Новым Годом и счастливого кодирования!<br>' +
@@ -1497,32 +1410,14 @@ document.addEventListener('DOMContentLoaded', function() {
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         });
         
-        // ==================== СЕКРЕТНЫЙ КОД ====================
-        let secretCode = '';
-        document.addEventListener('keypress', function(e) {
-            secretCode += e.key.toUpperCase();
-            if (secretCode.length > 10) secretCode = secretCode.slice(1);
-            
-            if (secretCode.includes('DIPSIK')) {
-                document.getElementById('codeDisplay').textContent = '🎄 СЕКРЕТ АКТИВИРОВАН!';
-                setTimeout(() => {
-                    document.getElementById('codeDisplay').textContent = '🎄 CODE: 2024';
-                }, 2000);
-                secretCode = '';
-            }
-        });
-        
-        // ==================== МОБИЛЬНОЕ УПРАВЛЕНИЕ ====================
-        setupMobileControls();
-        
         // ==================== ЗАГРУЗКА СОХРАНЕНИЙ ====================
         saveGameState();
+        updateDifficultyDisplay();
         
         // ==================== АВТОПРОИГРЫВАНИЕ МУЗЫКИ ====================
         setTimeout(() => {
             sounds.bgMusic.play().catch(e => {
                 console.log('Автовоспроизведение музыки заблокировано. Нажмите на экран для запуска.');
-                // Ждём первого взаимодействия
                 document.addEventListener('click', function startMusic() {
                     sounds.bgMusic.play();
                     document.removeEventListener('click', startMusic);
