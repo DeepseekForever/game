@@ -1,5 +1,5 @@
 /* =========================================== */
-/* DIPSIK: НОВОГОДНИЙ КВЕСТ - АДАПТИВНЫЕ СТИЛИ */
+/* DIPSIK: НОВОГОДНИЙ КВЕСТ - ОСНОВНЫЕ СТИЛИ */
 /* =========================================== */
 
 /* 1. СБРОС И БАЗА */
@@ -7,27 +7,24 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
-    -webkit-text-size-adjust: 100%;
 }
 
 html, body {
     width: 100%;
     height: 100%;
     overflow-x: hidden;
-    touch-action: manipulation;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: 'Courier New', Monaco, monospace;
     background: linear-gradient(-45deg, #1a3d1a, #2a2a00, #4a1a1a, #1a2a3a);
     background-size: 400% 400%;
     animation: gradientShift 20s ease infinite;
     color: #ffffff;
     position: relative;
     min-height: 100vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 @keyframes gradientShift {
@@ -67,13 +64,11 @@ body::before {
     height: 100%;
     display: none;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-    padding: 10px;
+    padding: 20px;
     z-index: 100;
-    background: rgba(0, 10, 30, 0.95);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    background: rgba(0, 10, 30, 0.3);
 }
 
 .screen.active {
@@ -82,32 +77,30 @@ body::before {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* 3. МЕНЮ - ПОПРАВЛЕННЫЕ РАЗМЕРЫ */
+/* 3. МЕНЮ */
 .menu-container {
-    max-width: 95%;
+    max-width: 800px;
     width: 100%;
     text-align: center;
-    background: rgba(0, 20, 40, 0.9);
-    border-radius: 20px;
-    padding: 15px;
+    background: rgba(0, 20, 40, 0.8);
+    border-radius: 25px;
+    padding: 40px 30px;
     border: 3px solid #FFD700;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-    margin: 10px 0;
-    overflow: hidden;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
 }
 
 .dipsik-logo {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 .dipsik-3d {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 15px;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 30px;
     perspective: 1000px;
 }
 
@@ -127,97 +120,120 @@ body::before {
 
 .face {
     position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background: linear-gradient(45deg, #228B22, #32CD32);
-    border: 3px solid #FFD700;
+    border: 4px solid #FFD700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
+    font-size: 2.5rem;
     font-weight: bold;
     color: #FFD700;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-.front  { transform: translateZ(50px); }
-.back   { transform: rotateY(180deg) translateZ(50px); }
-.right  { transform: rotateY(90deg) translateZ(50px); }
-.left   { transform: rotateY(-90deg) translateZ(50px); }
-.top    { transform: rotateX(90deg) translateZ(50px); }
-.bottom { transform: rotateX(-90deg) translateZ(50px); }
+.front  { transform: translateZ(75px); }
+.back   { transform: rotateY(180deg) translateZ(75px); }
+.right  { transform: rotateY(90deg) translateZ(75px); }
+.left   { transform: rotateY(-90deg) translateZ(75px); }
+.top    { transform: rotateX(90deg) translateZ(75px); }
+.bottom { transform: rotateX(-90deg) translateZ(75px); }
+
+/* НОВОГОДНИЙ ГЛИТЧ */
+@keyframes glitch {
+    0% { 
+        text-shadow: 2px 0 #228B22, -2px 0 #B22222;
+        transform: translate(0);
+    }
+    20% { 
+        text-shadow: -2px 0 #228B22, 2px 0 #B22222;
+        transform: translate(2px, 0);
+    }
+    40% { 
+        text-shadow: 2px 0 #FF8C00, -2px 0 #FFD700;
+        transform: translate(-2px, 0);
+    }
+    60% { 
+        text-shadow: -2px 0 #FF8C00, 2px 0 #FFD700;
+        transform: translate(0, 2px);
+    }
+    80% { 
+        text-shadow: 2px 0 #228B22, -2px 0 #B22222;
+        transform: translate(0, -2px);
+    }
+    100% { 
+        text-shadow: -2px 0 #228B22, 2px 0 #B22222;
+        transform: translate(0);
+    }
+}
 
 .title-glitch {
-    font-size: 2.5rem;
-    margin-bottom: 5px;
+    font-size: 4rem;
+    margin-bottom: 10px;
     color: #FFD700;
     font-family: 'Mountains of Christmas', cursive;
     animation: glitch 3s infinite;
-    line-height: 1;
 }
 
 .subtitle {
-    font-size: 1rem;
+    font-size: 1.3rem;
     color: #FF8C00;
-    margin-bottom: 15px;
+    margin-bottom: 40px;
     font-weight: bold;
-    line-height: 1.2;
 }
 
-/* 4. СТАТИСТИКА - УПРОЩЁННАЯ */
+/* 4. СТАТИСТИКА */
 .menu-stats {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 30px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
 }
 
 .stat-box {
     background: rgba(255, 215, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    min-width: 80px;
+    border-radius: 15px;
+    padding: 20px;
+    min-width: 120px;
     border: 2px solid #228B22;
     text-align: center;
-    flex: 1;
-    max-width: 100px;
 }
 
 .stat-box i {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     color: #FF8C00;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px #FF8C00;
 }
 
 .stat-value {
-    font-size: 1.3rem;
+    font-size: 2rem;
     font-weight: bold;
     color: #FFD700;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
 }
 
 .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     color: #32CD32;
     text-transform: uppercase;
 }
 
-/* 5. КНОПКИ МЕНЮ - БОЛЬШИЕ */
+/* 5. КНОПКИ МЕНЮ */
 .menu-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    width: 100%;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
 .menu-btn {
-    width: 100%;
-    max-width: 280px;
-    padding: 15px;
-    font-size: 1.1rem;
+    width: 300px;
+    padding: 20px 30px;
+    font-size: 1.3rem;
     font-weight: bold;
     background: linear-gradient(45deg, #228B22, #32CD32);
     color: #FFD700;
@@ -227,26 +243,26 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     transition: all 0.3s;
     font-family: 'Mountains of Christmas', cursive;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    touch-action: manipulation;
 }
 
-.menu-btn:hover, .menu-btn:active {
-    transform: translateY(-3px) scale(1.02);
+.menu-btn:hover {
+    transform: translateY(-5px) scale(1.05);
     box-shadow: 0 10px 25px rgba(34, 139, 34, 0.8);
     border-color: #FF8C00;
 }
 
 .menu-btn i {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
 }
 
+/* ПУЛЬСАЦИЯ */
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(34, 139, 34, 0.7); }
-    70% { box-shadow: 0 0 0 15px rgba(34, 139, 34, 0); }
+    70% { box-shadow: 0 0 0 20px rgba(34, 139, 34, 0); }
     100% { box-shadow: 0 0 0 0 rgba(34, 139, 34, 0); }
 }
 
@@ -257,29 +273,28 @@ body::before {
 /* 6. ПРОГРЕСС БАР */
 .progress-section {
     background: rgba(0, 10, 30, 0.8);
-    border-radius: 10px;
-    padding: 15px;
-    margin: 15px auto;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 30px auto;
     border: 2px solid #FF8C00;
-    max-width: 100%;
-    width: 100%;
+    max-width: 500px;
 }
 
 .progress-label {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #32CD32;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
 }
 
 .progress-bar {
     width: 100%;
-    height: 15px;
+    height: 20px;
     background: rgba(0, 30, 60, 0.8);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     border: 1px solid #228B22;
 }
 
@@ -287,37 +302,34 @@ body::before {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #228B22, #FF8C00, #FFD700, #B22222);
-    border-radius: 8px;
+    border-radius: 10px;
     transition: width 1s ease-in-out;
 }
 
 .progress-text {
     color: #FFD700;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     text-align: center;
 }
 
 /* 7. ЧИТ-КОДЫ */
 .cheat-codes {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
-    margin-top: 15px;
-    flex-wrap: wrap;
+    margin-top: 20px;
 }
 
 #cheatInput {
-    padding: 10px;
+    padding: 10px 15px;
     font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: 1rem;
     background: rgba(0, 0, 0, 0.7);
     border: 2px solid #FF8C00;
     border-radius: 5px;
     color: #FFD700;
-    width: 180px;
-    max-width: 100%;
+    width: 200px;
     text-align: center;
-    touch-action: manipulation;
 }
 
 #cheatInput::placeholder {
@@ -325,7 +337,7 @@ body::before {
 }
 
 #cheatBtn {
-    padding: 10px 15px;
+    padding: 10px 20px;
     background: linear-gradient(45deg, #B22222, #DC143C);
     border: none;
     border-radius: 5px;
@@ -333,46 +345,42 @@ body::before {
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s;
-    touch-action: manipulation;
 }
 
-#cheatBtn:active {
-    transform: scale(0.95);
-    box-shadow: 0 0 10px #B22222;
+#cheatBtn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px #B22222;
 }
 
 /* 8. ВЫБОР РЕЖИМА */
 .mode-container {
-    max-width: 95%;
+    max-width: 900px;
     width: 100%;
-    padding: 15px;
+    padding: 40px;
     background: rgba(0, 20, 40, 0.9);
-    border-radius: 20px;
+    border-radius: 25px;
     border: 3px solid #FFD700;
     text-align: center;
-    margin: 10px 0;
-    overflow-y: auto;
-    max-height: 90vh;
 }
 
 .mode-container h2 {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     color: #FFD700;
-    font-size: 1.5rem;
+    font-size: 2rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .mode-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
 }
 
 .mode-card {
     background: rgba(34, 139, 34, 0.8);
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 15px;
+    padding: 25px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
@@ -381,290 +389,249 @@ body::before {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    touch-action: manipulation;
 }
 
-.mode-card:active {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(34, 139, 34, 0.5);
+.mode-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(34, 139, 34, 0.5);
 }
 
 .mode-icon {
-    font-size: 2rem;
-    margin-bottom: 8px;
+    font-size: 3rem;
+    margin-bottom: 15px;
 }
 
 .mode-card h3 {
     color: #FFD700;
-    margin-bottom: 5px;
-    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
 }
 
 .mode-card p {
     color: #FF8C00;
-    font-size: 0.8rem;
-    margin-bottom: 8px;
-    line-height: 1.2;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
 }
 
 .mode-difficulty {
-    padding: 3px 8px;
-    border-radius: 15px;
-    font-size: 0.7rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
     font-weight: bold;
-    margin-top: 5px;
+    margin-top: 10px;
     color: #FFD700;
     background: rgba(0,0,0,0.3);
 }
 
+/* 9. BACK BUTTON */
 .back-btn {
-    padding: 12px 20px;
+    padding: 15px 30px;
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid #FF8C00;
     border-radius: 50px;
     color: #FFD700;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     margin: 0 auto;
     transition: all 0.3s;
-    touch-action: manipulation;
 }
 
-.back-btn:active {
+.back-btn:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
-/* 9. ИГРОВОЙ ЭКРАН - КРИТИЧНЫЕ ИСПРАВЛЕНИЯ */
+/* 10. ИГРОВОЙ ЭКРАН */
 #gameScreen {
-    background: rgba(0, 10, 30, 0.95);
-    padding: 5px;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
+    background: rgba(0, 10, 30, 0.9);
 }
 
 .game-hud {
     width: 100%;
-    padding: 8px 10px;
+    padding: 15px 25px;
     background: linear-gradient(90deg, 
         rgba(34, 139, 34, 0.9) 0%,
         rgba(255, 140, 0, 0.9) 50%,
         rgba(178, 34, 34, 0.9) 100%);
-    border-bottom: 3px solid #FFD700;
+    border-bottom: 5px solid #FFD700;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 5px;
 }
 
 .hud-left, .hud-right {
     display: flex;
-    gap: 10px;
+    gap: 30px;
     flex-wrap: wrap;
-    flex: 1;
-    justify-content: center;
 }
 
 .hud-center {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
-    align-items: center;
-    order: -1;
-    width: 100%;
-    margin-bottom: 5px;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .hud-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 60px;
+    min-width: 100px;
 }
 
 .hud-label {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: #FFD700;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
     text-transform: uppercase;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
 .hud-value {
-    font-size: 1rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #FFFFFF;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
 .score-display {
     background: linear-gradient(45deg, #FFD700, #FFA500);
-    padding: 6px 15px;
-    border-radius: 25px;
-    font-size: 1.2rem;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #B22222;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border: 2px solid #FF8C00;
-    width: 100%;
-    justify-content: center;
+    gap: 15px;
+    border: 3px solid #FF8C00;
 }
 
 .time-display {
     background: linear-gradient(45deg, #1E90FF, #00BFFF);
-    padding: 6px 15px;
-    border-radius: 25px;
-    font-size: 1.2rem;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #FFD700;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border: 2px solid #228B22;
-    width: 100%;
-    justify-content: center;
+    gap: 15px;
+    border: 3px solid #228B22;
 }
 
 .hearts {
     display: flex;
-    gap: 5px;
-    font-size: 1.2rem;
+    gap: 10px;
+    font-size: 1.8rem;
 }
 
 .hearts i {
     color: #B22222;
-    text-shadow: 0 0 5px #B22222;
+    text-shadow: 0 0 10px #B22222;
 }
 
 .hearts i.lost {
     color: #666;
-    opacity: 0.3;
+    opacity: 0.5;
 }
 
 .hud-btn {
     background: linear-gradient(45deg, #B22222, #DC143C);
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    color: #FFD700;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    touch-action: manipulation;
-    flex-shrink: 0;
-}
-
-.hud-btn:active {
-    transform: scale(0.9);
-    box-shadow: 0 0 15px #B22222;
-}
-
-/* 10. КАНВАС - ОЧЕНЬ ВАЖНО */
-.game-field {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: 0;
-    padding: 5px;
-}
-
-#gameCanvas {
-    background: linear-gradient(180deg, #0a2a1a 0%, #1a4a2a 100%);
-    border: 3px solid #FFD700;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
-    width: 100% !important;
-    max-width: 100%;
-    height: calc(100vh - 200px) !important;
-    min-height: 300px;
-    max-height: 500px;
-    display: block;
-    margin: 0 auto;
-    touch-action: none;
-}
-
-/* 11. УПРАВЛЕНИЕ - ДОЛЖНО БЫТЬ ВИДНО */
-.game-controls {
-    padding: 10px;
-    background: rgba(0, 10, 30, 0.95);
-    border-top: 2px solid #FFD700;
-    width: 100%;
-    display: none !important;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-    z-index: 1000;
-}
-
-/* На телефонах показываем управление */
-@media (max-width: 768px) {
-    .game-controls {
-        display: flex !important;
-    }
-}
-
-.control-row {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 5px;
-}
-
-.control-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid #FFD700;
-    background: linear-gradient(45deg, #228B22, #32CD32);
+    width: 50px;
+    height: 50px;
     color: #FFD700;
     font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s;
+}
+
+.hud-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #B22222;
+}
+
+/* 11. КАНВАС */
+#gameCanvas {
+    background: linear-gradient(180deg, #0a2a1a 0%, #1a4a2a 100%);
+    border: 5px solid #FFD700;
+    border-radius: 15px;
+    box-shadow: 
+        0 0 30px #FF8C00,
+        0 0 60px #228B22,
+        0 0 90px #B22222,
+        inset 0 0 20px rgba(255, 215, 0, 0.3);
+    max-width: 1200px;
+    width: 95%;
+    height: calc(100vh - 250px);
+    min-height: 500px;
+    display: block;
+    margin: 20px auto;
+}
+
+/* 12. УПРАВЛЕНИЕ */
+.game-controls {
+    padding: 20px;
+    background: rgba(0, 10, 30, 0.9);
+    border-top: 3px solid #FFD700;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 0;
+}
+
+.control-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #FFD700;
+    background: linear-gradient(45deg, #228B22, #32CD32);
+    color: #FFD700;
+    font-size: 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
 }
 
 .control-btn:active {
-    transform: scale(0.85);
+    transform: scale(0.95);
     background: linear-gradient(45deg, #32CD32, #228B22);
 }
 
 .action-btn, .special-btn {
-    padding: 12px 15px;
+    padding: 15px 30px;
     border: none;
-    border-radius: 25px;
+    border-radius: 50px;
     color: #FFD700;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 15px;
     transition: all 0.3s;
-    min-width: 140px;
-    touch-action: manipulation;
+    min-width: 200px;
 }
 
 .action-btn {
@@ -675,37 +642,39 @@ body::before {
     background: linear-gradient(45deg, #1E90FF, #00BFFF);
 }
 
-.action-btn:active, .special-btn:active {
-    transform: translateY(-2px);
-    opacity: 0.9;
+.action-btn:hover, .special-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
 
-/* 12. ПРОГРЕСС БАР В ИГРЕ */
+/* 13. ПРОГРЕСС БАР В ИГРЕ */
 .progress-container {
-    width: 90%;
-    max-width: 500px;
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
     background: rgba(0, 0, 0, 0.7);
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 10px 15px;
+    border-radius: 10px;
     border: 2px solid #FFD700;
-    margin: 5px auto;
-    position: relative;
     z-index: 50;
 }
 
 .progress-label {
     color: #32CD32;
-    font-size: 0.8rem;
-    margin-bottom: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
 }
 
 .progress-track {
     width: 100%;
-    height: 12px;
+    height: 15px;
     background: rgba(0, 30, 60, 0.8);
-    border-radius: 6px;
+    border-radius: 7px;
     overflow: hidden;
 }
 
@@ -713,142 +682,119 @@ body::before {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #228B22, #FF8C00);
-    border-radius: 6px;
+    border-radius: 7px;
     transition: width 0.3s;
 }
 
-/* 13. УВЕДОМЛЕНИЯ */
+/* 14. УВЕДОМЛЕНИЯ */
 .collect-notification {
     position: fixed;
-    top: 120px;
+    top: 100px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(34, 139, 34, 0.2);
     border: 2px solid #32CD32;
     color: #32CD32;
-    padding: 8px 15px;
-    border-radius: 15px;
+    padding: 10px 20px;
+    border-radius: 20px;
     font-weight: bold;
     display: none;
     z-index: 1000;
     animation: fadeUp 1s forwards;
-    font-size: 0.9rem;
 }
 
 .hurt-notification {
     position: fixed;
-    top: 160px;
+    top: 150px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(178, 34, 34, 0.2);
     border: 2px solid #DC143C;
     color: #DC143C;
-    padding: 8px 15px;
-    border-radius: 15px;
+    padding: 10px 20px;
+    border-radius: 20px;
     font-weight: bold;
     display: none;
     z-index: 1000;
     animation: shake 0.5s forwards;
-    font-size: 0.9rem;
-}
-
-.snow-notification {
-    position: fixed;
-    top: 200px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 150, 255, 0.2);
-    border: 2px solid #00aaff;
-    color: #00aaff;
-    padding: 8px 15px;
-    border-radius: 15px;
-    font-weight: bold;
-    display: none;
-    z-index: 1000;
-    animation: fadeUp 1s forwards;
-    font-size: 0.9rem;
 }
 
 @keyframes fadeUp {
-    0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
     50% { opacity: 1; transform: translateX(-50%) translateY(0); }
-    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
 
 @keyframes shake {
     0%, 100% { transform: translateX(-50%); }
-    25% { transform: translateX(calc(-50% - 3px)); }
-    75% { transform: translateX(calc(-50% + 3px)); }
+    25% { transform: translateX(calc(-50% - 5px)); }
+    75% { transform: translateX(calc(-50% + 5px)); }
 }
 
-/* 14. ЭКРАН ПАУЗЫ - АДАПТИВНЫЙ */
+/* 15. ЭКРАН ПАУЗЫ */
 .pause-container {
     background: rgba(0, 10, 30, 0.95);
-    border: 3px solid #FFD700;
-    border-radius: 15px;
-    padding: 20px;
-    max-width: 95%;
-    width: 100%;
+    border: 4px solid #FFD700;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
     text-align: center;
-    margin: 10px;
-    overflow-y: auto;
-    max-height: 90vh;
 }
 
 .pause-title {
     color: #FFD700;
-    font-size: 1.8rem;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
 }
 
 .pause-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .pause-stat {
     background: rgba(0, 30, 60, 0.7);
-    padding: 15px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 15px;
     border: 2px solid #228B22;
 }
 
 .stat-name {
     color: #32CD32;
-    font-size: 0.8rem;
-    margin-bottom: 5px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
     text-transform: uppercase;
 }
 
 .stat-value {
     color: #FFD700;
-    font-size: 1.3rem;
+    font-size: 2rem;
     font-weight: bold;
 }
 
 .pause-buttons {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
 .pause-btn {
-    padding: 12px;
+    padding: 15px;
     border: none;
     border-radius: 10px;
     color: #FFD700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     transition: all 0.3s;
-    touch-action: manipulation;
 }
 
 #resumeBtn { background: linear-gradient(45deg, #228B22, #32CD32); }
@@ -856,68 +802,61 @@ body::before {
 #quitBtn { background: linear-gradient(45deg, #B22222, #DC143C); }
 #saveBtn { background: linear-gradient(45deg, #1E90FF, #00BFFF); }
 
-.pause-btn:active {
-    transform: translateY(-2px);
-    opacity: 0.9;
+.pause-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 .pause-tips {
     background: rgba(255, 215, 0, 0.1);
-    padding: 15px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 15px;
     border: 2px solid #FF8C00;
 }
 
 .pause-tips h4 {
     color: #FF8C00;
-    margin-bottom: 8px;
-    font-size: 1rem;
+    margin-bottom: 10px;
 }
 
 .pause-tips p {
     color: #32CD32;
-    font-size: 0.8rem;
-    line-height: 1.3;
+    font-size: 0.9rem;
 }
 
-/* 15. ЭКРАН КОНЦА ИГРЫ */
+/* 16. ЭКРАН КОНЦА ИГРЫ */
 .gameover-container {
     background: linear-gradient(135deg, 
         rgba(34, 139, 34, 0.95) 0%,
         rgba(255, 140, 0, 0.95) 50%,
         rgba(178, 34, 34, 0.95) 100%);
-    border: 3px solid #FFD700;
-    border-radius: 15px;
-    padding: 20px;
-    max-width: 95%;
-    width: 100%;
+    border: 5px solid #FFD700;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 700px;
+    width: 90%;
     text-align: center;
-    margin: 10px;
-    overflow-y: auto;
-    max-height: 90vh;
 }
 
 #gameOverTitle {
     color: #FFD700;
-    font-size: 2rem;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    line-height: 1.2;
+    font-size: 3rem;
+    margin-bottom: 30px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
 }
 
 .result-icon {
-    margin-bottom: 20px;
-    font-size: 3rem;
+    margin-bottom: 30px;
 }
 
 .final-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 20px;
+    margin-bottom: 30px;
     background: rgba(0, 30, 60, 0.7);
-    padding: 15px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 15px;
     border: 2px solid #FF8C00;
 }
 
@@ -925,107 +864,93 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px;
-    font-size: 0.9rem;
+    padding: 10px;
+    font-size: 1.2rem;
 }
 
 .final-stat span:first-child {
     color: #32CD32;
     font-weight: bold;
-    text-align: left;
 }
 
 .final-value {
     color: #FFD700;
     font-weight: bold;
-    font-size: 1.1rem;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    text-align: right;
+    font-size: 1.5rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
-/* 16. КНОПКИ ПОДЕЛИТЬСЯ */
+/* 17. КНОПКИ ПОДЕЛИТЬСЯ */
 .share-section {
     background: rgba(255, 215, 0, 0.1);
-    border: 2px solid #FFD700;
-    border-radius: 15px;
-    padding: 15px;
-    margin: 20px 0;
+    border: 3px solid #FFD700;
+    border-radius: 20px;
+    padding: 25px;
+    margin: 30px 0;
     text-align: center;
 }
 
 .share-section h3 {
     color: #FFD700;
-    margin-bottom: 15px;
-    font-size: 1.1rem;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
 }
 
 .share-buttons {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 15px;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .telegram-share-btn, .whatsapp-share-btn {
-    padding: 12px;
-    border-radius: 25px;
+    padding: 15px 30px;
+    border-radius: 50px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     transition: all 0.3s;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     border: none;
-    touch-action: manipulation;
 }
 
-.telegram-share-btn {
-    background: linear-gradient(45deg, #0088cc, #34AADF);
-    color: white;
-}
-
-.whatsapp-share-btn {
-    background: linear-gradient(45deg, #25D366, #128C7E);
-    color: white;
-}
-
-.telegram-share-btn:active, .whatsapp-share-btn:active {
-    transform: translateY(-2px);
-    opacity: 0.9;
+.telegram-share-btn:hover, .whatsapp-share-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 .share-section p {
     color: #32CD32;
-    font-size: 0.8rem;
-    margin-top: 10px;
+    font-size: 0.9rem;
 }
 
-/* 17. КНОПКИ КОНЦА ИГРЫ */
+/* 18. КНОПКИ КОНЦА ИГРЫ */
 .gameover-buttons {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 20px;
     justify-content: center;
     margin-top: 20px;
 }
 
 .gameover-btn {
-    padding: 12px;
+    padding: 15px 30px;
     border: none;
-    border-radius: 25px;
+    border-radius: 50px;
     color: #FFD700;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     transition: all 0.3s;
-    touch-action: manipulation;
+    min-width: 200px;
 }
 
 #playAgainBtn {
@@ -1036,141 +961,336 @@ body::before {
     background: linear-gradient(45deg, #FF8C00, #FFA500);
 }
 
-.gameover-btn:active {
-    transform: translateY(-2px);
-    opacity: 0.9;
+.gameover-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
 
-/* 18. ПАСХАЛЬНОЕ ЯЙЦО */
-.easter-egg {
-    display: none;
+/* 19. АДАПТИВНОСТЬ */
+@media (max-width: 768px) {
+    .title-glitch { font-size: 2.8rem; }
+    .dipsik-3d { width: 120px; height: 120px; }
+    .face { width: 120px; height: 120px; font-size: 2rem; }
+    
+    .menu-btn { 
+        width: 100%; 
+        max-width: 300px;
+        padding: 15px 20px;
+        font-size: 1.1rem;
+    }
+    
+    .hud-center { 
+        flex-direction: column; 
+        gap: 10px;
+        order: -1;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .score-display, .time-display { 
+        font-size: 1.3rem; 
+        padding: 8px 15px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .control-btn { 
+        width: 70px; 
+        height: 70px; 
+        font-size: 1.5rem; 
+    }
+    
+    .action-btn, .special-btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+        min-width: 150px;
+    }
+    
+    .game-hud {
+        padding: 10px 15px;
+    }
+    
+    .hud-left, .hud-right {
+        gap: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .hud-item {
+        min-width: 80px;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 300px);
+        min-height: 400px;
+    }
+    
+    .progress-container {
+        bottom: 100px;
+        width: 90%;
+    }
+    
+    .collect-notification, .hurt-notification {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+    
+    .menu-container, .mode-container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .mode-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .pause-stats, .final-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .pause-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .gameover-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .gameover-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .garland {
+        height: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .title-glitch { font-size: 2.2rem; }
+    .subtitle { font-size: 1rem; }
+    
+    .menu-stats {
+        gap: 15px;
+    }
+    
+    .stat-box {
+        min-width: 100px;
+        padding: 15px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .control-btn { 
+        width: 60px; 
+        height: 60px; 
+        font-size: 1.3rem; 
+    }
+    
+    .control-row {
+        gap: 20px;
+    }
+    
+    .action-btn, .special-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        min-width: 130px;
+    }
+    
+    .mode-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    #gameCanvas {
+        height: calc(100vh - 280px);
+        min-height: 350px;
+    }
+    
+    .progress-container {
+        bottom: 80px;
+        padding: 8px 10px;
+    }
+    
+    .cheat-codes {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    #cheatInput {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+/* 20. БЛИНКОВАНИЕ */
+.blink {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+/* СТИЛЬ ДЛЯ УВЕДОМЛЕНИЯ О СНЕГОПАДЕ */
+.snow-notification {
     position: fixed;
-    top: 50%;
+    top: 200px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.95);
-    padding: 20px;
-    border-radius: 15px;
-    border: 3px solid #FFD700;
-    z-index: 10000;
-    color: white;
-    text-align: center;
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.easter-egg h2 {
-    color: #FFD700;
-    margin-bottom: 15px;
-    font-size: 1.5rem;
-}
-
-.easter-egg p {
-    margin-bottom: 20px;
-    line-height: 1.4;
-    font-size: 0.9rem;
-}
-
-.easter-egg button {
+    transform: translateX(-50%);
+    background: rgba(0, 150, 255, 0.2);
+    border: 2px solid #00aaff;
+    color: #00aaff;
     padding: 10px 20px;
-    background: linear-gradient(45deg, #228B22, #32CD32);
-    border: none;
-    border-radius: 25px;
-    color: #FFD700;
+    border-radius: 20px;
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-    touch-action: manipulation;
-}
-
-.easter-egg button:active {
-    transform: scale(0.95);
-}
-
-/* 19. СЕКРЕТНЫЙ КОД И СЛОЖНОСТЬ */
-.secret-code {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.7);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    color: #FFD700;
-    font-family: monospace;
+    display: none;
     z-index: 1000;
-    border: 1px solid #FF8C00;
-    max-width: 150px;
+    animation: fadeUp 1s forwards;
 }
 
-.difficulty-indicator {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: rgba(0,0,0,0.7);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    color: #FFD700;
-    font-family: monospace;
-    z-index: 1000;
-    border: 1px solid #FF8C00;
-    max-width: 150px;
+@keyframes fadeUp {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    50% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
 
-/* 20. ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ */
-@media (max-width: 360px) {
-    .title-glitch { font-size: 2rem; }
-    .subtitle { font-size: 0.9rem; }
-    .menu-btn { padding: 12px; font-size: 1rem; }
-    .stat-box { min-width: 70px; padding: 8px; }
-    .stat-value { font-size: 1.1rem; }
-    .mode-card { padding: 10px; }
-    .mode-card h3 { font-size: 1rem; }
-    .control-btn { width: 55px; height: 55px; font-size: 1.3rem; }
-    .action-btn, .special-btn { min-width: 120px; font-size: 0.8rem; }
-    #gameCanvas { height: calc(100vh - 180px) !important; }
+/* ДОПОЛНИТЕЛЬНЫЙ СТИЛЬ ДЛЯ КНОПОК */
+.control-btn:active {
+    transform: scale(0.9);
+    background: linear-gradient(45deg, #32CD32, #228B22) !important;
+}
+/* ==================== ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ ==================== */
+@media (max-width: 768px) {
+    /* Делаем меню компактнее */
+    .menu-container {
+        padding: 15px;
+        margin: 5px;
+        max-width: 95%;
+    }
+    
+    .title-glitch {
+        font-size: 2.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .menu-btn {
+        padding: 15px;
+        font-size: 1.1rem;
+        max-width: 280px;
+    }
+    
+    /* Делаем экран режимов адаптивным */
+    .mode-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .mode-card {
+        padding: 15px;
+    }
+    
+    .mode-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .mode-card p {
+        font-size: 0.8rem;
+    }
+    
+    /* Включаем мобильное управление */
+    .game-controls {
+        display: flex !important;
+        padding: 10px;
+    }
+    
+    .control-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .action-btn, .special-btn {
+        padding: 12px 15px;
+        font-size: 0.9rem;
+        min-width: 140px;
+    }
+    
+    /* Делаем канвас меньше */
+    #gameCanvas {
+        height: calc(100vh - 220px) !important;
+    }
+    
+    /* Делаем HUD компактнее */
+    .game-hud {
+        padding: 8px 10px;
+    }
+    
+    .hud-left, .hud-right {
+        gap: 10px;
+    }
+    
+    .hud-center {
+        flex-direction: row;
+        gap: 15px;
+        margin-bottom: 8px;
+    }
+    
+    .score-display, .time-display {
+        font-size: 1.2rem;
+        padding: 6px 12px;
+    }
 }
 
-/* 21. ГОРИЗОНТАЛЬНАЯ ОРИЕНТАЦИЯ */
-@media (max-height: 500px) and (orientation: landscape) {
-    .menu-container { max-height: 90vh; overflow-y: auto; }
-    .mode-container { max-height: 90vh; overflow-y: auto; }
-    .pause-container { max-height: 90vh; overflow-y: auto; }
-    .gameover-container { max-height: 90vh; overflow-y: auto; }
-    #gameCanvas { height: calc(100vh - 150px) !important; }
-    .game-hud { padding: 5px 8px; }
-    .hud-label { font-size: 0.6rem; }
-    .hud-value { font-size: 0.9rem; }
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .title-glitch {
+        font-size: 2rem;
+    }
+    
+    .menu-stats {
+        gap: 5px;
+    }
+    
+    .stat-box {
+        min-width: 70px;
+        padding: 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+    
+    .mode-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .control-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 1.3rem;
+    }
+    
+    .action-btn, .special-btn {
+        min-width: 120px;
+        font-size: 0.8rem;
+    }
 }
 
-/* 22. ОТКЛЮЧЕНИЕ ВЫДЕЛЕНИЯ И МАСШТАБА НА ТЕЛЕФОНАХ */
+/* Предотвращение выделения на телефонах */
 * {
+    -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
 }
 
 input, textarea {
     -webkit-user-select: text;
     user-select: text;
-}
-
-/* 23. ПРЕДОТВРАЩЕНИЕ МАСШТАБИРОВАНИЯ НА ТЕЛЕФОНАХ */
-@viewport {
-    width: device-width;
-    zoom: 1.0;
-    max-zoom: 1.0;
-    min-zoom: 1.0;
-}
-
-html {
-    -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-    touch-action: manipulation;
 }
