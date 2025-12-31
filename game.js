@@ -2288,12 +2288,4 @@ window.addEventListener('load', function() {
     
     // Запускаем инициализацию
     setTimeout(init, 100);
-});
-
-// Показываем мобильное управление на телефонах
-if (window.innerWidth <= 768 || 'ontouchstart' in window) {
-    const gameControls = document.querySelector('.game-controls');
-    if (gameControls) {
-        gameControls.style.display = 'flex';
-    }
-}
+})
