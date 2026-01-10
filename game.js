@@ -1,9 +1,9 @@
 // ============================================
-// DIPSIK: НОВОГОДНИЙ КВЕСТ - ПОЛНЫЙ КОД СО ВСЕМ ФУНКЦИОНАЛОМ
+// DIPSIK: НОВОГОДНИЙ КВЕСТ - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎮 DIPSIK: Полная версия игры загружается...');
+    console.log('🎮 DIPSIK: Оптимизированная версия игры загружается...');
     
     // ==================== КОНСТАНТЫ И ПЕРЕМЕННЫЕ ====================
     const GAME_MODES = {
@@ -643,6 +643,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Таймер
         updateGameTimer();
         
+        // Прогресс-бар уровня (ПОДВИНУТ ВЫШЕ, ЧТОБЫ НЕ МЕШАЛ ИГРОКУ)
+        drawLevelProgress();
+        
         gameLoopId = requestAnimationFrame(updateGame);
     }
     
@@ -681,6 +684,40 @@ document.addEventListener('DOMContentLoaded', function() {
         
         progressText.textContent = `${gameState.gifts % giftsForNextLevel}/${giftsForNextLevel} подарков`;
         levelProgressFill.style.width = `${progress}%`;
+    }
+    
+    // РИСУЕМ ПРОГРЕСС-БАР В КАНВАСЕ (ВЫШЕ ИГРОКА)
+    function drawLevelProgress() {
+        const progressBarWidth = 200;
+        const progressBarHeight = 10;
+        const progressBarX = canvas.width / 2 - progressBarWidth / 2;
+        const progressBarY = 40; // ПОДВИНУЛИ ВЫШЕ, ЧТОБЫ НЕ МЕШАЛ
+        
+        // Фон прогресс-бара
+        ctx.fillStyle = 'rgba(0, 30, 60, 0.8)';
+        ctx.fillRect(progressBarX, progressBarY, progressBarWidth, progressBarHeight);
+        
+        // Заполнение прогресс-бара
+        const giftsForNextLevel = 5;
+        const progress = (gameState.gifts % giftsForNextLevel) / giftsForNextLevel;
+        ctx.fillStyle = '#32CD32';
+        ctx.fillRect(progressBarX, progressBarY, progressBarWidth * progress, progressBarHeight);
+        
+        // Рамка
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(progressBarX, progressBarY, progressBarWidth, progressBarHeight);
+        
+        // Текст прогресса
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+            `${gameState.gifts % giftsForNextLevel}/${giftsForNextLevel} подарков`,
+            canvas.width / 2,
+            progressBarY - 10
+        );
     }
     
     function updateGameTimer() {
@@ -945,9 +982,9 @@ document.addEventListener('DOMContentLoaded', function() {
         hideAllScreens();
         document.getElementById('gameScreen').classList.add('active');
         
-        // Прогресс-бар уровня
+        // Скрываем старый прогресс-бар, теперь он рисуется в канвасе
         const levelProgress = document.getElementById('levelProgress');
-        if (levelProgress) levelProgress.style.display = 'block';
+        if (levelProgress) levelProgress.style.display = 'none';
         
         // Запуск игры
         gameRunning = true;
@@ -1150,11 +1187,52 @@ document.addEventListener('DOMContentLoaded', function() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         
+        // ==================== АДАПТИВНЫЙ СКРОЛЛ ДЛЯ МЕНЮ ====================
+        // Делаем меню скроллируемым на маленьких экранах
+        function makeMenuScrollable() {
+            const menuContainer = document.querySelector('.menu-container');
+            if (menuContainer) {
+                menuContainer.style.maxHeight = '90vh';
+                menuContainer.style.overflowY = 'auto';
+                menuContainer.style.overflowX = 'hidden';
+                menuContainer.style.paddingRight = '10px';
+                
+                // Скрываем скроллбар для красоты
+                menuContainer.style.scrollbarWidth = 'thin';
+                menuContainer.style.scrollbarColor = '#FFD700 rgba(0, 20, 40, 0.8)';
+            }
+            
+            const modeContainer = document.querySelector('.mode-container');
+            if (modeContainer) {
+                modeContainer.style.maxHeight = '90vh';
+                modeContainer.style.overflowY = 'auto';
+                modeContainer.style.overflowX = 'hidden';
+                modeContainer.style.paddingRight = '10px';
+            }
+            
+            const pauseContainer = document.querySelector('.pause-container');
+            if (pauseContainer) {
+                pauseContainer.style.maxHeight = '90vh';
+                pauseContainer.style.overflowY = 'auto';
+                pauseContainer.style.overflowX = 'hidden';
+                pauseContainer.style.paddingRight = '10px';
+            }
+            
+            const gameoverContainer = document.querySelector('.gameover-container');
+            if (gameoverContainer) {
+                gameoverContainer.style.maxHeight = '90vh';
+                gameoverContainer.style.overflowY = 'auto';
+                gameoverContainer.style.overflowX = 'hidden';
+                gameoverContainer.style.paddingRight = '10px';
+            }
+        }
+        
         // ==================== КНОПКИ МЕНЮ ====================
         document.getElementById('startGameBtn').addEventListener('click', function() {
             playSound(sounds.click);
             hideAllScreens();
             document.getElementById('modeScreen').classList.add('active');
+            makeMenuScrollable(); // Включаем скролл
         });
         
         document.querySelectorAll('.mode-card').forEach(card => {
@@ -1169,6 +1247,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playSound(sounds.click);
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
+            makeMenuScrollable(); // Включаем скролл
         });
         
         // ==================== КНОПКИ ИГРЫ ====================
@@ -1201,6 +1280,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sounds.snowstorm.currentTime = 0;
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
+            makeMenuScrollable(); // Включаем скролл
             removeMobileControls();
         });
         
@@ -1219,6 +1299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playSound(sounds.click);
             hideAllScreens();
             document.getElementById('menuScreen').classList.add('active');
+            makeMenuScrollable(); // Включаем скролл
             sounds.bgMusic.pause();
             sounds.bgMusic.currentTime = 0;
             removeMobileControls();
@@ -1482,7 +1563,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('easterEgg').style.display = 'none';
         });
         
-        // ==================== ЗАГРУЗКА СОХРАНЕНИЙ ====================
+        // ==================== ИНИЦИАЛИЗАЦИЯ АДАПТИВНОСТИ ====================
+        makeMenuScrollable(); // Включаем скролл при загрузке
         saveGameState();
         updateDifficultyDisplay();
         
@@ -1503,6 +1585,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📱 Мобильное управление настроено');
         console.log('💾 Сохранения загружены');
         console.log('📱 Кнопки поделиться настроены');
+        console.log('🔄 Меню адаптировано для маленьких экранов');
     }
     
     // Запуск инициализации
