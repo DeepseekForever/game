@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Скоро обновление | DIPSIK</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ВОТ ТОЧНО БЕЗ ФОНА */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* ВОТ ТУТ ФОНА НЕТ! */
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* ВИДЕО ФОН - ЕДИНСТВЕННЫЙ ФОН */
+        #video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        /* ТЕКСТ НА ВИДЕО */
+        .content {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 5rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+        }
+        
+        .subtitle {
+            color: #ccc;
+            letter-spacing: 8px;
+            margin-bottom: 50px;
+            font-size: 1.2rem;
+        }
+        
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            color: white;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+        
+        .text {
+            max-width: 800px;
+            color: #ddd;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .highlight {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* ПЛАВАЮЩИЕ ТЕКСТЫ */
+        .floating {
+            position: fixed;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes float {
+            0%, 100% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            20% { transform: translateY(-10px); }
+            30% { transform: translateY(-20px); }
+            40% { transform: translateY(-30px); }
+            50% { opacity: 0.8; transform: translateY(-40px); }
+            60% { opacity: 0.6; transform: translateY(-50px); }
+            70% { opacity: 0.4; transform: translateY(-60px); }
+            80% { opacity: 0.2; transform: translateY(-70px); }
+            90% { opacity: 0.1; transform: translateY(-80px); }
+        }
+        
+        /* ФУТЕР */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        /* КНОПКА */
+        .info-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ВИДЕО - ЕДИНСТВЕННЫЙ ФОН -->
+    <video id="video-bg" autoplay loop muted playsinline>
+        <!-- Загрузится через JS -->
+    </video>
+    
+    <!-- ПЛАВАЮЩИЕ ТЕКСТЫ -->
+    <div class="floating" style="top: 20%; left: 5%; animation-delay: 0s;">Новое обновление...</div>
+    <div class="floating" style="top: 65%; right: 5%; animation-delay: 4s;">Новый дизайн</div>
+    <div class="floating" style="bottom: 25%; left: 15%; animation-delay: 8s;">Новые уровни</div>
+    <div class="floating" style="top: 35%; right: 15%; animation-delay: 12s;">Новые пасхалки</div>
+    <div class="floating" style="top: 75%; left: 25%; animation-delay: 16s;">и многое другое,</div>
+    
+    <!-- КНОПКА -->
+    <div class="info-btn" onclick="showModal()">
+        <i class="fas fa-info"></i>
+    </div>
+    
+    <!-- КОНТЕНТ -->
+    <div class="content">
+        <div class="logo">DIPSIK</div>
+        <div class="subtitle">НОВОГОДНИЙ КВЕСТ</div>
+        
+        <h1 class="title">СКОРО ОБНОВЛЕНИЕ</h1>
+        
+        <div class="text">
+            <span class="highlight">Скоро обновление игры, следите за новостями.</span><br>
+            Старая версия игры станет архивирована после релиза новой.<br>
+            Вы сможете узнать это от администратора или на нашем сайте.
+        </div>
+    </div>
+    
+    <!-- ФУТЕР -->
+    <div class="footer">
+        Анимации на фоне являются интеллектуальной собственностью 
+        <a href="#" onclick="showModal(); return false;" style="color: #ccc;">"ООО ЯНДЕКС"</a>, 
+        и были использованы с сайта <a href="https://lumen.yandex.ru/" target="_blank" style="color: #ccc;">"https://lumen.yandex.ru/"</a>
+    </div>
+
+    <script>
+        // ПРОСТОЙ КОД
+        window.onload = function() {
+            const video = document.getElementById('video-bg');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // Пробуем видео
+            video.src = isMobile ? 'anim_mobile.mp4' : 'anim_pc.mp4';
+            
+            // Если видео не работает - пробуем GIF
+            video.onerror = function() {
+                console.log('Видео не загрузилось, пробуем GIF');
+                // Меняем видео на img
+                const img = document.createElement('img');
+                img.src = isMobile ? 'anim_mobile.gif' : 'anim_pc.gif';
+                img.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;';
+                document.body.appendChild(img);
+                video.remove();
+            };
+            
+            // Запуск по клику если не запустилось
+            document.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                }
+            });
+        };
+        
+        function showModal() {
+            const links = [
+                {name: 'GitHub проекта', url: 'https://github.com/deepseekforever/game'},
+                {name: 'Играть сейчас', url: 'https://deepseekforever.github.io/game/'}
+            ];
+            
+            let html = '<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
+            html += '<div style="background: #222; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">';
+            html += '<h3 style="color: white; margin-bottom: 20px; text-align: center;">Ссылки</h3>';
+            
+            links.forEach(link => {
+                html += `<a href="${link.url}" target="_blank" style="display: block; padding: 15px; background: #333; color: #ccc; text-decoration: none; margin: 10px 0; text-align: center; border-radius: 5px;">${link.name}</a>`;
+            });
+            
+            html += '<button onclick="this.parentElement.parentElement.remove()" style="margin-top: 20px; padding: 10px; width: 100%; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">Закрыть</button>';
+            html += '</div></div>';
+            
+            const modal = document.createElement('div');
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>
